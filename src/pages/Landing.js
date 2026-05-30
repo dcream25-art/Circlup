@@ -163,9 +163,9 @@ const FEATURES = [
 ]
 
 const POSTS_SAMPLE = [
-  { init: "SL", name: "Sophie L.",   shop: "@bijoux-boheme",   title: "Bague dorée plaquée or 18K",   tag: "Bijoux",       visits: 362, supports: 25, cp: 50, color: G.mint,   bgColor: "#2a3d38" },
-  { init: "TD", name: "Thomas D.",   shop: "@road-trip-app",   title: "Application voyage RoadTrip",  tag: "Application",  visits: 278, supports: 18, cp: 50, color: G.accent, bgColor: "#2d2420" },
-  { init: "CR", name: "Camille R.",  shop: "@studio-bloom",    title: "Identité visuelle Studio Bloom",tag: "Design",      visits: 195, supports: 12, cp: 50, color: G.gold,   bgColor: "#2a2a1f" },
+  { init: "SL", name: "Sophie L.",  shop: "@bijoux-boheme",  title: "Bague dorée plaquée or 18K",    tag: "Bijoux",      visits: 362, supports: 25, cp: 50, color: G.mint,   img: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&q=80" },
+  { init: "TD", name: "Thomas D.",  shop: "@road-trip-app",  title: "Application voyage RoadTrip",   tag: "Application", visits: 278, supports: 18, cp: 50, color: G.accent, img: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600&q=80" },
+  { init: "CR", name: "Camille R.", shop: "@studio-bloom",   title: "Identité visuelle Studio Bloom", tag: "Design",     visits: 195, supports: 12, cp: 50, color: G.gold,   img: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80" },
 ]
 
 const TESTIMONIALS = [
@@ -364,13 +364,15 @@ export default function Landing() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 20 }}>
             {POSTS_SAMPLE.map((post) => (
               <div key={post.name} className="card-hov" style={{ background: G.card, border: `1px solid ${G.border}`, borderRadius: 16, overflow: "hidden" }}>
-                {/* Image placeholder */}
-                <div style={{ height: 160, background: post.bgColor, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
-                  <div style={{ width: 80, height: 80, borderRadius: 16, background: `${post.color}30`, border: `2px solid ${post.color}50`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <ShoppingBag size={32} color={post.color} />
-                  </div>
-                  <div style={{ position: "absolute", top: 12, left: 12, background: `${post.color}20`, border: `1px solid ${post.color}40`, borderRadius: 6, padding: "3px 9px", fontSize: 11, color: post.color, fontWeight: 600 }}>{post.tag}</div>
-                  <div style={{ position: "absolute", bottom: 12, right: 12, background: G.goldL, border: `1px solid ${G.goldB}`, borderRadius: 6, padding: "3px 9px", fontSize: 11, color: G.gold, fontWeight: 700 }}>+{post.cp} CP</div>
+                {/* Photo réelle */}
+                <div style={{ height: 180, position: "relative", overflow: "hidden" }}>
+                  <img src={post.img} alt={post.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform 0.4s ease" }}
+                    onMouseOver={e => e.currentTarget.style.transform = "scale(1.05)"}
+                    onMouseOut={e => e.currentTarget.style.transform = "scale(1)"}
+                  />
+                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(22,32,29,0.7) 0%, transparent 50%)" }} />
+                  <div style={{ position: "absolute", top: 12, left: 12, background: `${post.color}25`, backdropFilter: "blur(8px)", border: `1px solid ${post.color}50`, borderRadius: 6, padding: "3px 9px", fontSize: 11, color: post.color, fontWeight: 600 }}>{post.tag}</div>
+                  <div style={{ position: "absolute", bottom: 12, right: 12, background: "rgba(22,32,29,0.85)", backdropFilter: "blur(8px)", border: `1px solid ${G.goldB}`, borderRadius: 6, padding: "3px 9px", fontSize: 11, color: G.gold, fontWeight: 700 }}>+{post.cp} CP</div>
                 </div>
                 <div style={{ padding: 18 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
