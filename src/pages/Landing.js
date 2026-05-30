@@ -55,95 +55,163 @@ function FaqItem({ q, a }) {
   )
 }
 
-// Mockup du dashboard dans le hero
+// Mockup du dashboard dans le hero — version détaillée
 function AppMockup() {
-  const days = ["L", "M", "M", "J", "V", "S", "D"]
-  const done = [true, true, true, true, false, false, false]
+  const r = 52, circ = 2 * Math.PI * r
   return (
-    <div style={{ background: G.bg3, border: `1px solid ${G.border}`, borderRadius: 16, padding: 0, overflow: "hidden", boxShadow: "0 32px 80px rgba(0,0,0,0.6)", width: "100%", maxWidth: 480 }}>
-      {/* Top bar */}
-      <div style={{ background: "rgba(0,0,0,0.3)", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `1px solid ${G.border}` }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <Logo size={20} />
-          <span style={{ fontFamily: G.serif, fontSize: 13, fontWeight: 800 }}>CirclUp</span>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div style={{ width: 24, height: 24, borderRadius: "50%", background: `radial-gradient(circle, ${G.mint}cc, ${G.mint}44)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 700, color: "#18251f" }}>SM</div>
-          <div>
-            <div style={{ fontSize: 10, fontWeight: 600 }}>Sophie M.</div>
-            <div style={{ fontSize: 8, color: G.gold, display: "flex", alignItems: "center", gap: 2 }}><Crown size={7} color={G.gold} /> Builder</div>
-          </div>
-        </div>
+    <div style={{
+      background: "#13201c", border: `1px solid rgba(255,255,255,0.1)`,
+      borderRadius: 18, overflow: "hidden",
+      boxShadow: "0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05)",
+      width: "100%", maxWidth: 620, fontSize: 0,
+    }}>
+      {/* Barre titre navigateur */}
+      <div style={{ background: "#0e1914", padding: "8px 14px", display: "flex", alignItems: "center", gap: 6, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+        {["#ff5f57","#ffbd2e","#28c840"].map(c => <div key={c} style={{ width: 10, height: 10, borderRadius: "50%", background: c }} />)}
+        <div style={{ flex: 1, margin: "0 10px", background: "rgba(255,255,255,0.06)", borderRadius: 5, padding: "3px 10px", fontSize: 9, color: "rgba(240,235,227,0.35)", fontFamily: G.sans }}>circlup.app/dashboard</div>
       </div>
-      <div style={{ display: "flex" }}>
-        {/* Mini sidebar */}
-        <div style={{ width: 120, background: "rgba(0,0,0,0.2)", borderRight: `1px solid ${G.border}`, padding: "12px 8px" }}>
-          {[["Dashboard", true], ["Feed", false], ["Missions", false], ["Cercle", false]].map(([label, active]) => (
-            <div key={label} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 8px", borderRadius: 6, marginBottom: 2, background: active ? `${G.accent}18` : "transparent", border: active ? `1px solid ${G.accentB}` : "1px solid transparent" }}>
-              <div style={{ width: 6, height: 6, borderRadius: "50%", background: active ? G.accent : G.faint }} />
-              <span style={{ fontSize: 10, color: active ? G.accent : G.muted, fontWeight: active ? 600 : 400 }}>{label}</span>
-              {label === "Missions" && <span style={{ marginLeft: "auto", background: G.accent, borderRadius: 8, fontSize: 8, color: "#fff", padding: "0 4px", fontWeight: 700 }}>8</span>}
+
+      <div style={{ display: "flex", height: 420 }}>
+        {/* Sidebar */}
+        <div style={{ width: 155, background: "#0e1914", borderRight: "1px solid rgba(255,255,255,0.06)", padding: "14px 10px", display: "flex", flexDirection: "column", flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 18, paddingLeft: 4 }}>
+            <div style={{ width: 22, height: 22, borderRadius: 6, background: "linear-gradient(135deg,#e05c4b,#c94535)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <span style={{ fontFamily: G.serif, fontSize: 11, fontWeight: 900, color: "#fff", lineHeight: 1 }}>C</span>
+            </div>
+            <span style={{ fontFamily: G.serif, fontSize: 13, fontWeight: 800, color: G.text }}>CirclUp</span>
+          </div>
+          {[
+            ["Dashboard", true, null],
+            ["Missions",  false, "8"],
+            ["Feed",      false, null],
+            ["Cercle",    false, null],
+            ["Statistiques", false, null],
+            ["Paramètres",   false, null],
+          ].map(([label, active, badge]) => (
+            <div key={label} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 8px", borderRadius: 6, marginBottom: 1, background: active ? "rgba(224,92,75,0.15)" : "transparent", border: active ? "1px solid rgba(224,92,75,0.3)" : "1px solid transparent" }}>
+              <div style={{ width: 5, height: 5, borderRadius: "50%", background: active ? G.accent : "rgba(240,235,227,0.18)", flexShrink: 0 }} />
+              <span style={{ fontSize: 10, color: active ? G.accent : "rgba(240,235,227,0.45)", fontWeight: active ? 600 : 400, flex: 1, fontFamily: G.sans }}>{label}</span>
+              {badge && <span style={{ background: G.accent, borderRadius: 8, fontSize: 8, color: "#fff", padding: "1px 5px", fontWeight: 700, fontFamily: G.sans }}>{badge}</span>}
             </div>
           ))}
-          <div style={{ marginTop: 16, background: G.goldL, border: `1px solid ${G.goldB}`, borderRadius: 8, padding: 8 }}>
-            <div style={{ fontSize: 8, color: G.gold, marginBottom: 4, fontWeight: 700 }}>⚡ CP</div>
-            <div style={{ fontFamily: G.serif, fontSize: 16, fontWeight: 900, color: G.gold }}>120</div>
-            <div style={{ height: 2, background: "rgba(255,255,255,0.07)", borderRadius: 1, marginTop: 4 }}>
-              <div style={{ width: "40%", height: "100%", background: G.gold, borderRadius: 1 }} />
+          {/* CP mini sidebar */}
+          <div style={{ marginTop: "auto", background: "rgba(212,168,75,0.1)", border: "1px solid rgba(212,168,75,0.25)", borderRadius: 9, padding: "10px 10px" }}>
+            <div style={{ fontSize: 8, color: G.gold, fontWeight: 700, marginBottom: 5, fontFamily: G.sans }}>⚡ CRÉDITS CP</div>
+            <div style={{ fontFamily: G.serif, fontSize: 20, fontWeight: 900, color: G.gold, marginBottom: 5 }}>120</div>
+            <div style={{ height: 2.5, background: "rgba(255,255,255,0.07)", borderRadius: 2 }}>
+              <div style={{ width: "40%", height: "100%", background: `linear-gradient(90deg,${G.gold},${G.accent})`, borderRadius: 2 }} />
             </div>
+            <div style={{ fontSize: 8, color: "rgba(240,235,227,0.3)", marginTop: 4, fontFamily: G.sans }}>Builder · 180 CP → Booster</div>
           </div>
         </div>
-        {/* Content */}
-        <div style={{ flex: 1, padding: 14, minWidth: 0 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, fontFamily: G.serif, marginBottom: 10 }}>Bonjour Sophie 👋</div>
-          {/* CP ring mini + streak */}
-          <div style={{ background: `${G.goldL}`, border: `1px solid ${G.goldB}`, borderRadius: 10, padding: "10px 12px", marginBottom: 10, display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ position: "relative", width: 44, height: 44, flexShrink: 0 }}>
-              <svg width={44} height={44} viewBox="0 0 44 44">
-                <circle cx={22} cy={22} r={18} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth={4} />
-                <circle cx={22} cy={22} r={18} fill="none" stroke={G.gold} strokeWidth={4} strokeDasharray={`${2*Math.PI*18*0.4} ${2*Math.PI*18}`} strokeLinecap="round" transform="rotate(-90 22 22)" />
-              </svg>
-              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <span style={{ fontSize: 9, fontWeight: 900, color: G.gold }}>120</span>
-              </div>
-            </div>
+
+        {/* Main content */}
+        <div style={{ flex: 1, padding: "16px 18px", overflowY: "hidden", background: "#1a2420" }}>
+          {/* Header */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
             <div>
-              <div style={{ fontSize: 9, color: G.gold, fontWeight: 700, marginBottom: 4 }}>Tes points · Builder</div>
-              <div style={{ display: "flex", gap: 4 }}>
-                {days.map((d, i) => (
-                  <div key={d} style={{ width: 14, height: 14, borderRadius: "50%", background: done[i] ? G.accent : "rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    {done[i] && <span style={{ fontSize: 7, color: "#fff" }}>✓</span>}
-                  </div>
-                ))}
-              </div>
+              <div style={{ fontFamily: G.serif, fontSize: 14, fontWeight: 800, color: G.text }}>Bonjour Sophie 👋</div>
+              <div style={{ fontSize: 9, color: "rgba(240,235,227,0.45)", fontFamily: G.sans }}>Prêt à booster ta boutique aujourd'hui ?</div>
             </div>
-            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 3, background: `${G.accent}18`, border: `1px solid ${G.accentB}`, borderRadius: 6, padding: "3px 7px" }}>
-              <Flame size={9} color={G.accent} />
-              <span style={{ fontSize: 9, color: G.accent, fontWeight: 700 }}>4 jours</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ width: 26, height: 26, borderRadius: "50%", background: "radial-gradient(circle,#7ecfc0cc,#7ecfc044)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 700, color: "#18251f", fontFamily: G.sans }}>SM</div>
+              <div>
+                <div style={{ fontSize: 9, fontWeight: 600, color: G.text, fontFamily: G.sans }}>Sophie M.</div>
+                <div style={{ fontSize: 8, color: G.gold, fontFamily: G.sans, display: "flex", alignItems: "center", gap: 2 }}>
+                  <Crown size={7} color={G.gold} /> Builder
+                </div>
+              </div>
             </div>
           </div>
-          {/* KPIs mini */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 10 }}>
-            {[["Favoris reçus", "47", G.gold, true], ["CP gagnés", "120", G.accent, true]].map(([label, val, color, up]) => (
-              <div key={label} style={{ background: G.card, border: `1px solid ${G.border}`, borderRadius: 8, padding: "8px 10px" }}>
-                <div style={{ fontSize: 8, color: G.muted, marginBottom: 3 }}>{label}</div>
-                <div style={{ fontFamily: G.serif, fontSize: 16, fontWeight: 900, color, marginBottom: 3 }}>{val}</div>
-                <Sparkline color={color} />
+
+          {/* CP Ring card */}
+          <div style={{ background: "linear-gradient(135deg,rgba(212,168,75,0.1),rgba(224,92,75,0.07))", border: "1px solid rgba(212,168,75,0.25)", borderRadius: 12, padding: "14px 18px", marginBottom: 12, display: "flex", alignItems: "center", gap: 18 }}>
+            {/* Anneau */}
+            <div style={{ position: "relative", width: 110, height: 110, flexShrink: 0 }}>
+              <svg width={110} height={110} viewBox="0 0 110 110">
+                <circle cx={55} cy={55} r={r} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth={7} />
+                <circle cx={55} cy={55} r={r} fill="none" stroke="url(#lg)" strokeWidth={7}
+                  strokeDasharray={`${circ * 0.4} ${circ}`} strokeLinecap="round" transform="rotate(-90 55 55)" />
+                <defs>
+                  <linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor={G.gold} />
+                    <stop offset="100%" stopColor={G.accent} />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                <span style={{ fontFamily: G.serif, fontSize: 22, fontWeight: 900, color: G.gold, lineHeight: 1 }}>120</span>
+                <span style={{ fontSize: 8, color: "rgba(240,235,227,0.5)", fontFamily: G.sans }}>pts</span>
+              </div>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 9, color: G.gold, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 8, fontFamily: G.sans }}>Tes points disponibles</div>
+              <div style={{ display: "flex", gap: 7, marginBottom: 10 }}>
+                <div style={{ background: G.accent, borderRadius: 7, padding: "5px 10px", fontSize: 9, color: "#fff", fontWeight: 700, fontFamily: G.sans, display: "flex", alignItems: "center", gap: 4 }}>
+                  <Zap size={9} fill="#fff" /> Gagner des CP
+                </div>
+                <div style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 7, padding: "5px 10px", fontSize: 9, color: "rgba(240,235,227,0.5)", fontFamily: G.sans }}>
+                  Voir les missions
+                </div>
+              </div>
+              {/* Streak */}
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <div style={{ background: "rgba(224,92,75,0.12)", border: "1px solid rgba(224,92,75,0.3)", borderRadius: 5, padding: "2px 7px", display: "flex", alignItems: "center", gap: 3 }}>
+                  <Flame size={8} color={G.accent} />
+                  <span style={{ fontSize: 8, color: G.accent, fontWeight: 700, fontFamily: G.sans }}>4 jours</span>
+                </div>
+                <div style={{ display: "flex", gap: 3 }}>
+                  {["L","M","M","J","V","S","D"].map((d, i) => (
+                    <div key={i} style={{ width: 14, height: 14, borderRadius: "50%", background: i < 4 ? G.accent : "rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      {i < 4 && <span style={{ fontSize: 7, color: "#fff" }}>✓</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* KPIs 4 colonnes */}
+          <div style={{ fontSize: 8, color: "rgba(240,235,227,0.35)", fontFamily: G.sans, fontWeight: 600, letterSpacing: 0.5, marginBottom: 7, textTransform: "uppercase" }}>Tes Performances · 7 derniers jours</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 7, marginBottom: 12 }}>
+            {[
+              ["Favoris reçus",  "47",  "+34%", G.gold],
+              ["Missions faites","12",  "+18%", G.mint],
+              ["CP gagnés",      "120", "+25%", G.accent],
+              ["Posts actifs",   "2",   "+11%", G.mint],
+            ].map(([label, val, pct, color]) => (
+              <div key={label} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 8, padding: "8px 9px" }}>
+                <div style={{ fontSize: 8, color: "rgba(240,235,227,0.4)", marginBottom: 4, fontFamily: G.sans }}>{label}</div>
+                <div style={{ fontFamily: G.serif, fontSize: 16, fontWeight: 900, color, marginBottom: 2 }}>{val}</div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: 8, color: G.mint, fontFamily: G.sans }}>{pct}</span>
+                  <Sparkline color={color} />
+                </div>
               </div>
             ))}
           </div>
-          {/* Missions mini */}
-          <div style={{ background: G.card, border: `1px solid ${G.border}`, borderRadius: 8, padding: "8px 10px" }}>
-            <div style={{ fontSize: 9, fontWeight: 700, marginBottom: 7, display: "flex", alignItems: "center", gap: 5 }}>
-              Missions du jour <span style={{ background: G.accent, borderRadius: 8, fontSize: 8, color: "#fff", padding: "0 5px" }}>8</span>
+
+          {/* Missions du jour */}
+          <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, padding: "10px 12px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: G.text, fontFamily: G.sans }}>Missions du jour</span>
+                <span style={{ background: G.accent, borderRadius: 8, fontSize: 8, color: "#fff", padding: "1px 6px", fontWeight: 700, fontFamily: G.sans }}>8</span>
+              </div>
+              <span style={{ fontSize: 8, color: G.mint, fontFamily: G.sans }}>Voir toutes →</span>
             </div>
-            {[["Ajouter aux favoris", "+5 CP"], ["Visiter la boutique", "+3 CP"], ["Partager en story", "+10 CP"]].map(([label, cp]) => (
-              <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 0", borderBottom: `1px solid ${G.borderL}` }}>
-                <span style={{ fontSize: 9, color: G.muted }}>{label}</span>
-                <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                  <span style={{ fontSize: 9, color: G.mint, fontWeight: 700 }}>{cp}</span>
-                  <div style={{ background: G.accent, borderRadius: 4, padding: "1px 6px", fontSize: 8, color: "#fff", fontWeight: 700 }}>Go</div>
+            {[
+              ["Ajouter aux favoris Etsy",  "+5 CP",  G.gold],
+              ["Visiter la boutique",        "+3 CP",  G.mint],
+              ["Partager en story",          "+10 CP", G.accent],
+            ].map(([label, cp, color]) => (
+              <div key={label} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                <div style={{ width: 22, height: 22, borderRadius: 6, background: `${color}15`, border: `1px solid ${color}30`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Star size={10} color={color} />
                 </div>
+                <span style={{ flex: 1, fontSize: 9, color: "rgba(240,235,227,0.6)", fontFamily: G.sans }}>{label}</span>
+                <span style={{ fontSize: 9, color, fontWeight: 700, fontFamily: G.sans }}>{cp}</span>
+                <div style={{ background: G.accent, borderRadius: 5, padding: "2px 8px", fontSize: 8, color: "#fff", fontWeight: 700, fontFamily: G.sans }}>Commencer</div>
               </div>
             ))}
           </div>
