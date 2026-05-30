@@ -62,8 +62,8 @@ function AppMockup() {
     <div style={{
       background: "#13201c", border: `1px solid rgba(255,255,255,0.1)`,
       borderRadius: 18, overflow: "hidden",
-      boxShadow: "0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05)",
-      width: "100%", maxWidth: 620, fontSize: 0,
+      boxShadow: "0 40px 120px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.05)",
+      width: "100%", maxWidth: 780, fontSize: 0,
     }}>
       {/* Barre titre navigateur */}
       <div style={{ background: "#0e1914", padding: "8px 14px", display: "flex", alignItems: "center", gap: 6, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
@@ -71,7 +71,7 @@ function AppMockup() {
         <div style={{ flex: 1, margin: "0 10px", background: "rgba(255,255,255,0.06)", borderRadius: 5, padding: "3px 10px", fontSize: 9, color: "rgba(240,235,227,0.35)", fontFamily: G.sans }}>circlup.app/dashboard</div>
       </div>
 
-      <div style={{ display: "flex", height: 420 }}>
+      <div style={{ display: "flex", height: 500 }}>
         {/* Sidebar */}
         <div style={{ width: 155, background: "#0e1914", borderRight: "1px solid rgba(255,255,255,0.06)", padding: "14px 10px", display: "flex", flexDirection: "column", flexShrink: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 18, paddingLeft: 4 }}>
@@ -296,13 +296,13 @@ export default function Landing() {
       </nav>
 
       {/* ── HERO ── */}
-      <section style={{ minHeight: "100vh", display: "flex", alignItems: "center", padding: "80px 5% 60px", gap: 60, position: "relative", overflow: "hidden" }}>
+      <section style={{ minHeight: "100vh", display: "flex", alignItems: "center", padding: "80px 5% 60px", gap: 48, position: "relative", overflow: "hidden" }}>
         {/* Glow */}
         <div style={{ position: "absolute", top: "30%", left: "30%", width: 500, height: 500, background: "radial-gradient(ellipse, rgba(126,207,192,0.05) 0%, transparent 70%)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", top: "20%", right: "10%", width: 300, height: 300, background: "radial-gradient(ellipse, rgba(224,92,75,0.05) 0%, transparent 70%)", pointerEvents: "none" }} />
 
         {/* Left */}
-        <div style={{ flex: 1, maxWidth: 520 }}>
+        <div style={{ flex: "0 0 420px", maxWidth: 420 }}>
           <div className="fade-1" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: G.mintL, border: `1px solid ${G.mintB}`, borderRadius: 20, padding: "6px 14px", marginBottom: 24 }}>
             <span style={{ width: 6, height: 6, borderRadius: "50%", background: G.mint, display: "inline-block" }} />
             <span style={{ fontSize: 12, color: G.mint, fontWeight: 600 }}>312 entrepreneurs actifs · 4 850€ de ventes ce mois</span>
@@ -345,7 +345,7 @@ export default function Landing() {
         </div>
 
         {/* Right - App Mockup */}
-        <div className="float" style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
+        <div className="float" style={{ flex: 1, display: "flex", justifyContent: "flex-end", alignItems: "center", minWidth: 0 }}>
           <AppMockup />
         </div>
       </section>
