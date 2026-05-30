@@ -3,8 +3,25 @@ import { Link } from 'react-router-dom'
 import {
   Star, Eye, Heart, MessageCircle, Share2, Pin, Search, ShoppingBag,
   ArrowRight, CheckCircle, Users, TrendingUp, Zap, ChevronDown, ChevronUp,
-  RefreshCw, BarChart2, Target, Shield
+  BarChart2, Shield, FileText, Award, Repeat2
 } from 'lucide-react'
+
+function Logo({ size = 32 }) {
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: size * 0.28,
+      background: "linear-gradient(135deg, #e05c4b 0%, #c94535 100%)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      boxShadow: "0 2px 10px rgba(224,92,75,0.4)", flexShrink: 0,
+    }}>
+      <span style={{
+        fontFamily: "'Playfair Display', Georgia, serif",
+        fontSize: size * 0.44, fontWeight: 900, color: "#fff",
+        lineHeight: 1, letterSpacing: -0.5,
+      }}>C</span>
+    </div>
+  )
+}
 
 const G = {
   bg: "#1a2420",
@@ -41,24 +58,35 @@ const MISSIONS = [
 const STEPS = [
   {
     num: "01",
-    title: "Publie ton produit",
-    desc: "Crée un post avec l'histoire de ton produit. Plus ton histoire est vraie, plus tu reçois de missions.",
-    icon: Target,
+    title: "Tu publies ton produit",
+    desc: "Tu crées un post en racontant l'histoire de ton produit — pourquoi tu l'as créé, ce qui le rend unique. Un score de qualité (0-100) est calculé automatiquement : plus ton histoire est riche, plus ton post attire de missions.",
+    icon: FileText,
     color: G.accent,
+    detail: "Score calculé sur : longueur du texte, histoire personnelle, appel à l'action, prix...",
   },
   {
     num: "02",
-    title: "Fais des missions",
-    desc: "Aide les autres membres — favoris Etsy, partages, avis. Chaque action te rapporte des CP.",
-    icon: RefreshCw,
+    title: "Ton cercle voit ton post",
+    desc: "Tu es assigné à un cercle de 10 vendeurs de ta même niche (Mode, Bijoux, Maison...). Ils voient ton post en priorité dans leur feed. Vous vous connaissez, vous avancez ensemble — pas avec des inconnus.",
+    icon: Users,
     color: G.mint,
+    detail: "10 membres · même niche · entraide ciblée",
   },
   {
     num: "03",
-    title: "Booste ton algorithme",
-    desc: "Les signaux que tu reçois (favoris, visites, avis) améliorent ton référencement Etsy et Shopify.",
-    icon: TrendingUp,
+    title: "Ils font des missions pour toi",
+    desc: "Les membres de ton cercle peuvent faire jusqu'à 8 missions sur ton post : ajouter aux favoris Etsy, visiter ta boutique, partager en story, laisser un avis... Chaque mission leur rapporte des CP. Toi, tu reçois de vrais signaux algorithmiques.",
+    icon: Repeat2,
     color: G.gold,
+    detail: "8 missions disponibles · de +3 CP à +40 CP",
+  },
+  {
+    num: "04",
+    title: "L'algorithme te remarque",
+    desc: "Etsy et Shopify mesurent les favoris, les visites, les avis et les partages pour décider qui apparaît en premier dans les recherches. CirclUp génère ces signaux de façon organique — ce sont de vraies personnes qui agissent. Résultat : ton référencement monte.",
+    icon: TrendingUp,
+    color: G.accent,
+    detail: "Favoris · Visites · Avis · Partages · Trafic externe",
   },
 ]
 
@@ -162,17 +190,11 @@ export default function Landing() {
         display: "flex", alignItems: "center", justifyContent: "space-between",
         height: 64,
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{
-            width: 32, height: 32, borderRadius: 8,
-            background: `linear-gradient(135deg, ${G.accent}, #c94535)`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <RefreshCw size={16} color="#fff" strokeWidth={2.5} />
-          </div>
-          <span style={{ fontFamily: G.serif, fontSize: 20, fontWeight: 900 }}>CirclUp</span>
+        <Link to="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+          <Logo size={32} />
+          <span style={{ fontFamily: G.serif, fontSize: 20, fontWeight: 900, color: G.text }}>CirclUp</span>
           <span style={{ fontSize: 9, color: G.faint, border: `1px solid ${G.border}`, borderRadius: 4, padding: "2px 6px", letterSpacing: 1 }}>BETA</span>
-        </div>
+        </Link>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <Link to="/login" style={{
             color: G.muted, fontSize: 14, fontWeight: 500, padding: "8px 16px",
@@ -227,10 +249,9 @@ export default function Landing() {
 
           <p className="fade-3" style={{
             fontSize: "clamp(15px, 2vw, 18px)", color: G.muted,
-            lineHeight: 1.7, maxWidth: 540, margin: "0 auto 40px",
+            lineHeight: 1.7, maxWidth: 560, margin: "0 auto 40px",
           }}>
-            CirclUp réunit des vendeurs Etsy et Shopify qui s'entraident via des petites missions.
-            Favoris, partages, avis — les signaux qui boostent ton algorithme, générés sans pub.
+            Tu rejoins un cercle de 10 vendeurs Etsy ou Shopify de ta niche. Vous vous faites des missions mutuellement — favoris, partages, avis. L'algorithme détecte l'activité. Ton classement monte. Sans dépenser un euro en pub.
           </p>
 
           <div className="fade-3" style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
@@ -293,41 +314,54 @@ export default function Landing() {
       {/* ── HOW IT WORKS ── */}
       <section id="comment" style={{ padding: "100px 5%" }}>
         <div style={{ maxWidth: 1000, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 64 }}>
+          <div style={{ textAlign: "center", marginBottom: 56 }}>
             <div style={{ fontSize: 11, color: G.mint, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", marginBottom: 14 }}>COMMENT ÇA MARCHE</div>
             <h2 style={{ fontFamily: G.serif, fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 900, marginBottom: 16 }}>
-              Simple comme 1-2-3
+              La mécanique de l'entraide
             </h2>
-            <p style={{ fontSize: 15, color: G.muted, maxWidth: 480, margin: "0 auto" }}>
-              Pas d'algorithme magique. Juste de l'entraide réelle entre entrepreneurs.
+            <p style={{ fontSize: 15, color: G.muted, maxWidth: 560, margin: "0 auto" }}>
+              CirclUp ne triche pas. Pas de bots, pas de faux clics. Des vrais entrepreneurs qui s'entraident — et l'algorithme qui récompense cette activité réelle.
             </p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 24 }}>
-            {STEPS.map((step) => {
+          <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 860, margin: "0 auto" }}>
+            {STEPS.map((step, idx) => {
               const Icon = step.icon
               return (
                 <div key={step.num} style={{
                   background: G.card, border: `1px solid ${G.border}`,
-                  borderRadius: 18, padding: 32, position: "relative",
+                  borderRadius: 18, padding: "28px 32px",
+                  display: "flex", gap: 28, alignItems: "flex-start",
                 }}>
-                  <div style={{
-                    position: "absolute", top: 24, right: 24,
-                    fontFamily: G.serif, fontSize: 48, fontWeight: 900,
-                    color: "rgba(255,255,255,0.04)", lineHeight: 1,
-                  }}>
-                    {step.num}
+                  {/* Numéro + ligne verticale */}
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
+                    <div style={{
+                      width: 48, height: 48, borderRadius: 12,
+                      background: `${step.color}18`, border: `1px solid ${step.color}40`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
+                      <Icon size={20} color={step.color} />
+                    </div>
+                    {idx < STEPS.length - 1 && (
+                      <div style={{ width: 1, flex: 1, minHeight: 24, background: `linear-gradient(${step.color}40, transparent)`, marginTop: 8 }} />
+                    )}
                   </div>
-                  <div style={{
-                    width: 48, height: 48, borderRadius: 12,
-                    background: `${step.color}18`, border: `1px solid ${step.color}40`,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    marginBottom: 20,
-                  }}>
-                    <Icon size={22} color={step.color} />
+                  {/* Contenu */}
+                  <div style={{ flex: 1, paddingTop: 4 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                      <span style={{ fontFamily: G.serif, fontSize: 11, color: step.color, fontWeight: 700, letterSpacing: 1 }}>ÉTAPE {step.num}</span>
+                    </div>
+                    <h3 style={{ fontFamily: G.serif, fontSize: 21, fontWeight: 800, marginBottom: 10, color: G.text }}>{step.title}</h3>
+                    <p style={{ fontSize: 14, color: G.muted, lineHeight: 1.8, marginBottom: 12 }}>{step.desc}</p>
+                    <div style={{
+                      display: "inline-flex", alignItems: "center", gap: 6,
+                      background: `${step.color}12`, border: `1px solid ${step.color}30`,
+                      borderRadius: 8, padding: "5px 12px",
+                    }}>
+                      <step.icon size={12} color={step.color} />
+                      <span style={{ fontSize: 11, color: step.color, fontWeight: 600 }}>{step.detail}</span>
+                    </div>
                   </div>
-                  <h3 style={{ fontFamily: G.serif, fontSize: 20, fontWeight: 800, marginBottom: 10 }}>{step.title}</h3>
-                  <p style={{ fontSize: 14, color: G.muted, lineHeight: 1.7 }}>{step.desc}</p>
                 </div>
               )
             })}
@@ -596,16 +630,10 @@ export default function Landing() {
         display: "flex", justifyContent: "space-between", alignItems: "center",
         flexWrap: "wrap", gap: 16,
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div style={{
-            width: 26, height: 26, borderRadius: 7,
-            background: `linear-gradient(135deg, ${G.accent}, #c94535)`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <RefreshCw size={13} color="#fff" strokeWidth={2.5} />
-          </div>
-          <span style={{ fontFamily: G.serif, fontSize: 16, fontWeight: 800 }}>CirclUp</span>
-        </div>
+        <Link to="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
+          <Logo size={26} />
+          <span style={{ fontFamily: G.serif, fontSize: 16, fontWeight: 800, color: G.text }}>CirclUp</span>
+        </Link>
         <div style={{ display: "flex", gap: 24 }}>
           {["Conditions d'utilisation", "Confidentialité", "Contact"].map(label => (
             <span key={label} style={{ fontSize: 12, color: G.faint, cursor: "pointer" }}>{label}</span>

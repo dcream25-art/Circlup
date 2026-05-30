@@ -177,10 +177,11 @@ export default function Dashboard() {
         <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 32, paddingLeft: 4 }}>
           <div style={{
             width: 30, height: 30, borderRadius: 8,
-            background: `linear-gradient(135deg, ${G.accent}, #c94535)`,
+            background: "linear-gradient(135deg, #e05c4b 0%, #c94535 100%)",
             display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 2px 8px rgba(224,92,75,0.35)", flexShrink: 0,
           }}>
-            <RefreshCw size={15} color="#fff" strokeWidth={2.5} />
+            <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 14, fontWeight: 900, color: "#fff", lineHeight: 1 }}>C</span>
           </div>
           <div>
             <div style={{ fontFamily: G.serif, fontSize: 16, fontWeight: 800 }}>CirclUp</div>
