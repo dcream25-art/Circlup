@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { usePosts } from '../hooks/usePosts'
 import { supabase } from '../lib/supabase'
@@ -220,15 +221,15 @@ export default function Dashboard() {
         padding: "20px 12px", display: "flex", flexDirection: "column",
         position: "sticky", top: 0, height: "100vh", flexShrink: 0, overflowY: "auto",
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 28, paddingLeft: 4 }}>
-          <div style={{ width: 30, height: 30, borderRadius: 8, background: "linear-gradient(135deg, #e05c4b, #c94535)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(224,92,75,0.4)" }}>
+        <Link to="/" style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 28, paddingLeft: 4, textDecoration: "none", color: "inherit" }}>
+          <div style={{ width: 30, height: 30, borderRadius: 8, background: "linear-gradient(135deg, #e05c4b, #c94535)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(224,92,75,0.4)", flexShrink: 0 }}>
             <span style={{ fontFamily: G.serif, fontSize: 14, fontWeight: 900, color: "#fff" }}>C</span>
           </div>
           <div>
             <div style={{ fontFamily: G.serif, fontSize: 16, fontWeight: 800 }}>CirclUp</div>
             <div style={{ fontSize: 9, color: G.faint, letterSpacing: 0.8 }}>BETA · v1.0</div>
           </div>
-        </div>
+        </Link>
 
         {NAV.map(({ id, Icon, label, badge }) => {
           const active = tab === id
