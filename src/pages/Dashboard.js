@@ -161,6 +161,51 @@ const CP_SHOP = [
     color: G.accent, badge: "Disponible",
     category: "économies",
   },
+  {
+    id: "rank_badge",
+    ShopIcon: Award,
+    title: "Badge de rang exclusif",
+    desc: "Badge permanent sur ton profil : Pionnier, Elite Seller ou Top Contributor. Visible dans le feed et le classement.",
+    cost: 300,
+    color: G.gold, badge: "Statut",
+    category: "statut",
+  },
+  {
+    id: "profile_frame",
+    ShopIcon: Star,
+    title: "Cadre de profil animé",
+    desc: "Contour animé autour de ta photo de profil, visible partout dans l'app.",
+    cost: 120,
+    color: G.cyan, badge: "Identité",
+    category: "statut",
+  },
+  {
+    id: "verified_tag",
+    ShopIcon: Shield,
+    title: "Tag Vérifié",
+    desc: "Indicateur de sérieux sur ton profil. Renforce ta crédibilité auprès de la communauté.",
+    cost: 250,
+    color: G.cyan, badge: "Crédibilité",
+    category: "statut",
+  },
+  {
+    id: "pseudo_color",
+    ShopIcon: PenLine,
+    title: "Couleur de pseudo unique",
+    desc: "Ton pseudo en couleur distinctive dans le feed et les commentaires. Édition limitée : 50 membres maximum.",
+    cost: 400,
+    color: G.accent, badge: "Rare · 50 max",
+    category: "statut",
+  },
+  {
+    id: "founder_badge",
+    ShopIcon: Rocket,
+    title: "Badge Fondateur CirclUp",
+    desc: "Badge unique réservé aux 200 premiers membres. Prouve que tu étais là dès le lancement. Jamais réédité.",
+    cost: 500,
+    color: G.gold, badge: "Lancement · 200 ex.",
+    category: "statut",
+  },
 ]
 
 const DAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
@@ -560,6 +605,23 @@ export default function Dashboard() {
         if (!data) { setToast('CP insuffisants (1000 CP requis)'); setTimeout(() => setToast(null), 2200); return }
         setToast("✅ 1€ de réduction ajouté à ton abonnement !")
         setTimeout(() => setToast(null), 2600)
+      } else if (['rank_badge','profile_frame','verified_tag','pseudo_color','founder_badge'].includes(item.id)) {
+        // Items identité/statut : RPC dédiée (débit + effet + rareté, côté serveur)
+        let rpcName = null, rpcArgs = {}
+        if (item.id === 'rank_badge') { rpcName = 'buy_rank_badge'; rpcArgs = { p_badge: 'Pionnier' } }
+        else if (item.id === 'profile_frame') rpcName = 'buy_profile_frame'
+        else if (item.id === 'verified_tag') rpcName = 'buy_verified_tag'
+        else if (item.id === 'pseudo_color') { rpcName = 'buy_pseudo_color'; rpcArgs = { p_color: '#FF6A3D' } }
+        else if (item.id === 'founder_badge') rpcName = 'buy_founder_badge'
+        const { data, error } = await supabase.rpc(rpcName, rpcArgs)
+        if (error) { console.error(rpcName + ' error:', error); setToast("Erreur lors de l'achat"); setTimeout(() => setToast(null), 2500); return }
+        if (!data) {
+          const msg = (item.id === 'pseudo_color' || item.id === 'founder_badge')
+            ? "Édition limitée épuisée, déjà possédé, ou CP insuffisants" : "CP insuffisants ou déjà possédé"
+          setToast(msg); setTimeout(() => setToast(null), 2800); return
+        }
+        setToast(`✅ "${item.title}" activé !`)
+        setTimeout(() => setToast(null), 2400)
       } else {
         // Dépense sécurisée : le serveur ne débite que l'appelant
         const { data: spent, error: spendErr } = await supabase.rpc('spend_points', {
@@ -713,6 +775,7 @@ export default function Dashboard() {
         @keyframes cpFlash { 0%{opacity:0;transform:translateY(14px) scale(0.8)} 12%{opacity:1;transform:translateY(0) scale(1.06)} 80%{opacity:1} 100%{opacity:0;transform:translateY(-42px) scale(0.85)} }
         @keyframes iconFloat { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-5px) scale(1.03)} }
         @keyframes spinRing { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -339.3; } }
+        @keyframes framePulse { 0%,100% { box-shadow: 0 0 0 2px rgba(255,106,61,0.55); } 50% { box-shadow: 0 0 11px 3px rgba(0,213,213,0.6); } }
 
         .nav-btn { transition: all 0.18s cubic-bezier(0.16,1,0.3,1); }
         .nav-btn:hover { background: rgba(255,255,255,0.06) !important; }
@@ -1560,13 +1623,25 @@ export default function Dashboard() {
                         {/* En-tête auteur */}
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
                           <Link to={post.profiles?.username ? `/u/${post.profiles.username}` : '#'} className="lnk" style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                            <Avatar initials={authorInit} color={post.profiles?.avatar_color || G.cyan} size={36} src={post.profiles?.avatar_url} />
+                            <span style={{ display: "inline-flex", borderRadius: "50%", ...(post.profiles?.profile_frame === 'animated' ? { animation: "framePulse 2.2s ease-in-out infinite" } : {}) }}>
+                              <Avatar initials={authorInit} color={post.profiles?.avatar_color || G.cyan} size={36} src={post.profiles?.avatar_url} />
+                            </span>
                             <div>
                               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                <span style={{ fontWeight: 700, fontSize: 13, color: G.text }}>{post.profiles?.name}</span>
-                                <span style={{ width: 14, height: 14, borderRadius: "50%", background: G.cyan, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
-                                  <CheckCircle size={9} color="#050505" />
-                                </span>
+                                <span style={{ fontWeight: 700, fontSize: 13, color: post.profiles?.pseudo_color || G.text }}>{post.profiles?.name}</span>
+                                {post.profiles?.is_verified_badge && (
+                                  <span title="Profil vérifié" style={{ width: 14, height: 14, borderRadius: "50%", background: G.cyan, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                                    <CheckCircle size={9} color="#050505" />
+                                  </span>
+                                )}
+                                {post.profiles?.is_founder && (
+                                  <span title="Fondateur CirclUp" style={{ display: "inline-flex", alignItems: "center", gap: 3, background: G.goldL, border: `1px solid ${G.goldB}`, color: G.gold, fontSize: 9, fontWeight: 800, padding: "1px 6px", borderRadius: 5, flexShrink: 0 }}>
+                                    <Rocket size={9} /> Fondateur
+                                  </span>
+                                )}
+                                {post.profiles?.rank_badge && (
+                                  <span style={{ fontSize: 9, fontWeight: 800, color: G.accent, background: G.accentL, border: `1px solid ${G.accentB}`, padding: "1px 6px", borderRadius: 5, flexShrink: 0 }}>{post.profiles.rank_badge}</span>
+                                )}
                               </div>
                               <div style={{ fontSize: 11, color: G.muted, marginTop: 1 }}>
                                 {post.profiles?.shop_name || ''}{post.profiles?.shop_name ? ' · ' : ''}{timeAgo(post.created_at)}

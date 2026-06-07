@@ -15,7 +15,7 @@ export function usePosts() {
         .from('posts')
         .select(`
           *,
-          profiles!posts_user_id_fkey(id, name, username, level, reputation, league, badges, shop_name, shop_url, avatar_url, avatar_color),
+          profiles!posts_user_id_fkey(id, name, username, level, reputation, league, badges, shop_name, shop_url, avatar_url, avatar_color, pseudo_color, is_verified_badge, is_founder, rank_badge, profile_frame),
           post_likes(user_id),
           post_favorites(user_id),
           missions(mission_type, user_id)
