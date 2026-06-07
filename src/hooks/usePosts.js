@@ -25,7 +25,14 @@ export function usePosts() {
         .limit(20)
 
       if (error) throw error
-      setPosts(data || [])
+      // La "tête de feed" (top_until actif) passe devant tout le reste
+      const now = Date.now()
+      const sorted = (data || []).slice().sort((a, b) => {
+        const at = a.top_until && new Date(a.top_until).getTime() > now ? 1 : 0
+        const bt = b.top_until && new Date(b.top_until).getTime() > now ? 1 : 0
+        return bt - at
+      })
+      setPosts(sorted)
     } catch (err) {
       console.error('fetchPosts error:', err)
       setPosts([])

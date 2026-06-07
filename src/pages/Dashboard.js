@@ -108,10 +108,19 @@ const NAV = [
 // Catalogue de la boutique CP
 const CP_SHOP = [
   {
+    id: "feed_top",
+    ShopIcon: Crown,
+    title: "Tête de feed 24h",
+    desc: "Ton post épinglé tout en haut du feed pendant 24h. Un seul slot par jour sur toute la plateforme — premier arrivé, premier servi.",
+    cost: 150,
+    color: G.gold, badge: "Rare · 1/jour",
+    category: "visibilité",
+  },
+  {
     id: "boost_24h",
     ShopIcon: Zap,
     title: "Boost Express",
-    desc: "Ton post passe en tête du feed pendant 24h.",
+    desc: "Ton post mis en avant (priorité dans le feed) pendant 24h.",
     cost: 100,
     color: G.accent, badge: "Le plus populaire",
     category: "visibilité",
@@ -622,6 +631,16 @@ export default function Dashboard() {
         }
         setToast(`✅ "${item.title}" activé !`)
         setTimeout(() => setToast(null), 2400)
+      } else if (item.id === 'feed_top') {
+        if (!postId) { setToast("Choisis un post à mettre en tête"); setTimeout(() => setToast(null), 2200); return }
+        const { data, error } = await supabase.rpc('buy_feed_top', { p_post_id: postId })
+        if (error) { console.error('buy_feed_top error:', error); setToast("Erreur lors de l'achat"); setTimeout(() => setToast(null), 2500); return }
+        if (data === 'slot_taken') { setToast("La tête de feed est déjà prise aujourd'hui — réessaie demain."); setTimeout(() => setToast(null), 3200); return }
+        if (data === 'not_owner') { setToast("Tu ne peux mettre en avant que tes propres posts"); setTimeout(() => setToast(null), 2600); return }
+        if (data !== 'ok') { setToast("CP insuffisants (150 CP requis)"); setTimeout(() => setToast(null), 2400); return }
+        setToast("👑 Ton post est en TÊTE DE FEED pour 24h !")
+        setTimeout(() => setToast(null), 2800)
+        await fetchPosts(); setTab('feed')
       } else {
         // Dépense sécurisée : le serveur ne débite que l'appelant
         const { data: spent, error: spendErr } = await supabase.rpc('spend_points', {
@@ -1580,11 +1599,17 @@ export default function Dashboard() {
                 const isLiked = post.post_likes?.some(l => l.user_id === user?.id)
                 const isFaved = post.post_favorites?.some(f => f.user_id === user?.id)
                 const isBoosted = post.is_boosted && (!post.boosted_until || new Date(post.boosted_until) > new Date())
+                const isTop = post.top_until && new Date(post.top_until) > new Date()
                 return (
                   <div key={post.id} className="post-card" style={{ background: G.card, border: `1px solid ${isBoosted ? G.accentB : G.border}`, borderRadius: 16, marginBottom: 16, overflow: "hidden", display: "flex", flexDirection: "column", transition: "border-color 0.15s", boxShadow: isBoosted ? `0 0 0 1px ${G.accentB}, 0 8px 30px rgba(255,106,61,0.12)` : "none" }}
                     onMouseOver={e => e.currentTarget.style.borderColor = G.borderHover}
                     onMouseOut={e => e.currentTarget.style.borderColor = G.border}
                   >
+                    {isTop && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, background: "linear-gradient(90deg, rgba(245,197,24,0.18), rgba(255,106,61,0.10))", borderBottom: `1px solid ${G.goldB}`, padding: "6px 16px", fontSize: 11, fontWeight: 800, color: G.gold, letterSpacing: 0.5 }}>
+                        <Crown size={12} /> TÊTE DE FEED
+                      </div>
+                    )}
                     {/* ── TOP ROW : image + contenu ── */}
                     <div style={{ display: "flex" }}>
 
@@ -2075,7 +2100,7 @@ export default function Dashboard() {
                         ) : (
                           <button
                             onClick={() => {
-                              if (item.id === 'boost_24h' || item.id === 'featured_48h') {
+                              if (item.id === 'boost_24h' || item.id === 'featured_48h' || item.id === 'feed_top') {
                                 // Sélectionner quel post booster (modale)
                                 const myPosts = posts.filter(p => p.user_id === user?.id)
                                 if (myPosts.length === 0) { setToast("Tu n'as pas encore de post à booster."); setTimeout(() => setToast(null), 2200); return }
