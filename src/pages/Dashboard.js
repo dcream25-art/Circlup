@@ -345,6 +345,9 @@ export default function Dashboard() {
   const [shopCategory, setShopCategory] = useState('tous')
   const [purchasing, setPurchasing] = useState(null) // item id en cours
   const [purchaseSuccess, setPurchaseSuccess] = useState(null) // item acheté
+  const [boostModal, setBoostModal] = useState(null)       // item (boost) en attente de choix de post
+  const [rechargeModal, setRechargeModal] = useState(null) // { postId, product } pour recharger un budget
+  const [rechargeAmt, setRechargeAmt] = useState('50')
 
   const [nProduct, setNProduct] = useState("")
   const [nPrice, setNPrice]     = useState("")
@@ -797,6 +800,54 @@ export default function Dashboard() {
                 style={{ flex: 2, background: (!missionModal.mission.needsProof || proofUrl.trim()) ? "linear-gradient(135deg, #FF6A3D, #e04820)" : G.card2, boxShadow: (!missionModal.mission.needsProof || proofUrl.trim()) ? "0 4px 16px rgba(255,106,61,0.35)" : "none", border: "none", color: (!missionModal.mission.needsProof || proofUrl.trim()) ? "#fff" : G.faint, padding: "12px", borderRadius: 8, cursor: (!missionModal.mission.needsProof || proofUrl.trim()) ? "pointer" : "not-allowed", fontSize: 14, fontWeight: 700, fontFamily: G.sans, display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
                 <CheckCircle size={15} /> J'ai effectué cette mission
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal choix du post à booster */}
+      {boostModal && (
+        <div onClick={e => { if (e.target === e.currentTarget) setBoostModal(null) }} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 950, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div style={{ background: G.bg3, border: `1px solid ${G.border}`, borderRadius: 16, padding: 28, width: "100%", maxWidth: 440 }}>
+            <h3 style={{ fontFamily: G.serif, fontSize: 20, fontWeight: 900, marginBottom: 6, color: G.text }}>{boostModal.title}</h3>
+            <p style={{ fontSize: 13, color: G.muted, marginBottom: 18 }}>Choisis le post à mettre en avant ({boostModal.cost} CP) :</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 320, overflowY: "auto" }}>
+              {posts.filter(p => p.user_id === user?.id).map(p => (
+                <button key={p.id} onClick={() => { const it = boostModal; setBoostModal(null); handleCPPurchase(it, p.id) }} style={{ textAlign: "left", background: G.card, border: `1px solid ${G.border}`, borderRadius: 10, padding: "12px 14px", cursor: "pointer", color: G.text, fontSize: 13, fontFamily: G.sans }}>
+                  <strong>{p.product}</strong>
+                  <span style={{ display: "block", fontSize: 11, color: G.faint, marginTop: 2 }}>{p.is_boosted ? "Déjà boosté" : "Cliquer pour booster"}</span>
+                </button>
+              ))}
+            </div>
+            <button onClick={() => setBoostModal(null)} style={{ marginTop: 16, width: "100%", background: "transparent", border: `1px solid ${G.border}`, color: G.muted, padding: "11px", borderRadius: 9, cursor: "pointer", fontSize: 13, fontFamily: G.sans }}>Annuler</button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal recharge du budget de soutien */}
+      {rechargeModal && (
+        <div onClick={e => { if (e.target === e.currentTarget) setRechargeModal(null) }} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 950, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div style={{ background: G.bg3, border: `1px solid ${G.border}`, borderRadius: 16, padding: 28, width: "100%", maxWidth: 400 }}>
+            <h3 style={{ fontFamily: G.serif, fontSize: 20, fontWeight: 900, marginBottom: 6, color: G.text }}>Recharger le budget</h3>
+            <p style={{ fontSize: 13, color: G.muted, marginBottom: 16 }}>Ces CP récompenseront les missions sur « {rechargeModal.product} ». Tu as {profile?.cp || 0} CP.</p>
+            <div style={{ display: "flex", gap: 7, marginBottom: 14, flexWrap: "wrap" }}>
+              {[25, 50, 100, 250].map(v => (
+                <button key={v} onClick={() => setRechargeAmt(String(v))} style={{ background: rechargeAmt === String(v) ? G.accent : "rgba(255,255,255,0.05)", border: `1px solid ${rechargeAmt === String(v) ? G.accent : G.border}`, color: rechargeAmt === String(v) ? "#fff" : G.muted, padding: "7px 14px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontWeight: 600, fontFamily: G.sans }}>{v} CP</button>
+              ))}
+            </div>
+            <input type="number" min="1" value={rechargeAmt} onChange={e => setRechargeAmt(e.target.value)} placeholder="Montant en CP" style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: `1px solid ${G.border}`, borderRadius: 10, padding: "11px 14px", color: G.text, fontSize: 14, fontFamily: G.sans, marginBottom: 16, boxSizing: "border-box" }} />
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={() => setRechargeModal(null)} style={{ flex: 1, background: "transparent", border: `1px solid ${G.border}`, color: G.muted, padding: "11px", borderRadius: 9, cursor: "pointer", fontSize: 13, fontFamily: G.sans }}>Annuler</button>
+              <button onClick={async () => {
+                const v = parseInt(rechargeAmt, 10)
+                if (!v || v <= 0) return
+                const pid = rechargeModal.postId
+                setRechargeModal(null)
+                const r = await fundPost(pid, v)
+                if (r.success) { setToast(`+${v} CP ajoutés au budget`); fetchProfile(user.id) }
+                else { setToast('CP insuffisants') }
+                setTimeout(() => setToast(null), 2200)
+              }} style={{ flex: 2, background: G.accent, border: "none", color: "#fff", padding: "11px", borderRadius: 9, cursor: "pointer", fontSize: 13, fontWeight: 700, fontFamily: G.sans }}>Recharger</button>
             </div>
           </div>
         </div>
@@ -1461,14 +1512,7 @@ export default function Dashboard() {
                             <span style={{ fontSize: 11, color: G.muted }}>
                               💛 Budget soutien : <strong style={{ color: G.gold }}>{post.support_budget || 0} CP</strong> restants
                             </span>
-                            <button onClick={async () => {
-                              const v = parseInt(window.prompt('Combien de CP ajouter au budget de soutien de ce post ?', '50'), 10)
-                              if (!v || v <= 0) return
-                              const r = await fundPost(post.id, v)
-                              if (r.success) { setToast(`+${v} CP ajoutés au budget`); fetchProfile(user.id) }
-                              else { setToast('CP insuffisants') }
-                              setTimeout(() => setToast(null), 2200)
-                            }} style={{ background: G.accentL, border: `1px solid ${G.accentB}`, color: G.accent, padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: G.sans, flexShrink: 0 }}>
+                            <button onClick={() => { setRechargeAmt('50'); setRechargeModal({ postId: post.id, product: post.product }) }} style={{ background: G.accentL, border: `1px solid ${G.accentB}`, color: G.accent, padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: G.sans, flexShrink: 0 }}>
                               Recharger
                             </button>
                           </div>
@@ -1918,14 +1962,11 @@ export default function Dashboard() {
                           <button
                             onClick={() => {
                               if (item.id === 'boost_24h' || item.id === 'featured_48h') {
-                                // Sélectionner quel post booster
+                                // Sélectionner quel post booster (modale)
                                 const myPosts = posts.filter(p => p.user_id === user?.id)
-                                if (myPosts.length === 0) { alert("Tu n'as pas encore de post à booster."); return }
+                                if (myPosts.length === 0) { setToast("Tu n'as pas encore de post à booster."); setTimeout(() => setToast(null), 2200); return }
                                 if (myPosts.length === 1) { handleCPPurchase(item, myPosts[0].id); return }
-                                // Plusieurs posts — simple prompt
-                                const choices = myPosts.map((p, i) => `${i+1}. ${p.product}`).join('\n')
-                                const idx = parseInt(prompt(`Quel post booster ?\n${choices}\n\nEntre le numéro :`)) - 1
-                                if (idx >= 0 && idx < myPosts.length) handleCPPurchase(item, myPosts[idx].id)
+                                setBoostModal(item)
                               } else {
                                 handleCPPurchase(item)
                               }

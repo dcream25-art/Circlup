@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { RefreshCw, AlertCircle, ArrowRight } from 'lucide-react'
+import { supabase } from '../lib/supabase'
+import { RefreshCw, AlertCircle, ArrowRight, CheckCircle } from 'lucide-react'
 
 const G = {
   bg: "#050505",
@@ -30,6 +31,7 @@ export default function Login() {
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
   const [error, setError]       = useState('')
+  const [info, setInfo]         = useState('')
   const [loading, setLoading]   = useState(false)
 
   const handleSubmit = async (e) => {
@@ -43,6 +45,16 @@ export default function Login() {
     } else {
       navigate('/app')
     }
+  }
+
+  const handleForgot = async () => {
+    setError(''); setInfo('')
+    if (!email) { setError("Entre ton email ci-dessus, puis reclique."); return }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + '/login',
+    })
+    if (error) setError(error.message)
+    else setInfo("Email de réinitialisation envoyé ! Vérifie ta boîte (et les spams).")
   }
 
   const inp = {
@@ -212,6 +224,11 @@ export default function Login() {
               required
               style={inp}
             />
+            <div style={{ textAlign: "right", marginTop: 8 }}>
+              <button type="button" onClick={handleForgot} style={{ background: "none", border: "none", color: G.muted, fontSize: 12, cursor: "pointer", fontFamily: G.sans, textDecoration: "underline", padding: 0 }}>
+                Mot de passe oublié ?
+              </button>
+            </div>
           </div>
 
           {error && (
@@ -229,6 +246,13 @@ export default function Login() {
             }}>
               <AlertCircle size={15} color="#FF8060" />
               {error}
+            </div>
+          )}
+
+          {info && (
+            <div style={{ background: "rgba(0,213,213,0.08)", border: "1px solid rgba(0,213,213,0.22)", borderRadius: 10, padding: "11px 15px", fontSize: 13, color: G.cyan, marginBottom: 18, display: "flex", alignItems: "center", gap: 9 }}>
+              <CheckCircle size={15} color={G.cyan} />
+              {info}
             </div>
           )}
 

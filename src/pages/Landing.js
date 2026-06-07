@@ -8,6 +8,51 @@ import {
   Flame, Target, ChevronRight, ExternalLink, X, Rocket, Clock
 } from 'lucide-react'
 
+// Destinations réelles des liens de pied de page (anchors de sections, routes, mailto)
+const FOOTER_LINKS = {
+  "Fonctionnalités": "#fonctionnalités",
+  "Tarifs": "#tarifs",
+  "Missions": "#fonctionnalités",
+  "CP & Rangs": "#fonctionnalités",
+  "Blog": "#fonctionnalités",
+  "Guides": "#fonctionnalités",
+  "Témoignages": "#témoignages",
+  "Affiliation": "/register",
+  "À propos": "#fonctionnalités",
+  "Contact": "mailto:contact@circlup.fr",
+  "CGU": "mailto:contact@circlup.fr?subject=CGU",
+  "Confidentialité": "mailto:contact@circlup.fr?subject=Confidentialité",
+  "Conditions d'utilisation": "mailto:contact@circlup.fr?subject=CGU",
+  "Cookies": "mailto:contact@circlup.fr?subject=Cookies",
+}
+// ⚠️ Remplacer par les vraies URLs des comptes CirclUp quand ils existeront
+const SOCIAL_LINKS = {
+  IG: "https://instagram.com", TK: "https://tiktok.com",
+  YT: "https://youtube.com", LI: "https://linkedin.com",
+}
+
+// Inscription newsletter (capture réelle dans Supabase)
+function NewsletterForm() {
+  const [email, setEmail] = useState('')
+  const [done, setDone] = useState(false)
+  const submit = async () => {
+    const v = email.trim()
+    if (!v || !v.includes('@')) return
+    try { await supabase.from('newsletter_emails').insert({ email: v }) } catch (e) {}
+    setDone(true); setEmail('')
+  }
+  if (done) return <div style={{ fontSize: 13, color: "#00D5D5", lineHeight: 1.6 }}>Merci ! On te tient au courant 💌</div>
+  return (
+    <div style={{ display: "flex", gap: 0 }}>
+      <input value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') submit() }}
+        placeholder="Ton email" style={{ flex: 1, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRight: "none", borderRadius: "9px 0 0 9px", padding: "10px 14px", color: "#fff", fontSize: 12, outline: "none", fontFamily: "'DM Sans', system-ui, sans-serif" }} />
+      <button onClick={submit} aria-label="S'inscrire" style={{ background: "#FF6A3D", border: "none", color: "#fff", padding: "10px 14px", borderRadius: "0 9px 9px 0", cursor: "pointer" }}>
+        <ArrowRight size={14} />
+      </button>
+    </div>
+  )
+}
+
 const G = {
   bg: "#050505",
   bg2: "#0A0A0A",
@@ -1062,10 +1107,10 @@ export default function Landing() {
               <p style={{ fontSize: 13, color: G.muted, lineHeight: 1.75, marginBottom: 24, maxWidth: 220 }}>La communauté d'entraide des entrepreneurs e-commerce.</p>
               <div style={{ display: "flex", gap: 8 }}>
                 {["IG", "TK", "YT", "LI"].map(s => (
-                  <div key={s} style={{ width: 34, height: 34, borderRadius: 9, background: G.card, border: `1px solid ${G.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: G.muted, fontWeight: 700, cursor: "pointer", transition: "all 0.15s" }}
+                  <a key={s} href={SOCIAL_LINKS[s]} target="_blank" rel="noreferrer" style={{ width: 34, height: 34, borderRadius: 9, background: G.card, border: `1px solid ${G.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: G.muted, fontWeight: 700, cursor: "pointer", transition: "all 0.15s", textDecoration: "none" }}
                     onMouseOver={e => { e.currentTarget.style.borderColor = G.borderHover; e.currentTarget.style.color = G.text }}
                     onMouseOut={e => { e.currentTarget.style.borderColor = G.border; e.currentTarget.style.color = G.muted }}
-                  >{s}</div>
+                  >{s}</a>
                 ))}
               </div>
             </div>
@@ -1078,18 +1123,14 @@ export default function Landing() {
             ].map(([title, links]) => (
               <div key={title}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: G.text, marginBottom: 18, letterSpacing: 0.3 }}>{title}</div>
-                {links ? links.map(link => (
-                  <div key={link} style={{ fontSize: 13, color: G.muted, marginBottom: 12, cursor: "pointer", transition: "color 0.15s" }}
-                    onMouseOver={e => e.currentTarget.style.color = G.text}
-                    onMouseOut={e => e.currentTarget.style.color = G.muted}
-                  >{link}</div>
-                )) : (
-                  <div style={{ display: "flex", gap: 0 }}>
-                    <input placeholder="Ton email" style={{ flex: 1, background: G.card, border: `1px solid ${G.border}`, borderRight: "none", borderRadius: "9px 0 0 9px", padding: "10px 14px", color: G.text, fontSize: 12, outline: "none", fontFamily: G.sans }} />
-                    <button style={{ background: G.accent, border: "none", color: "#fff", padding: "10px 14px", borderRadius: "0 9px 9px 0", cursor: "pointer", transition: "background 0.15s" }}>
-                      <ArrowRight size={14} />
-                    </button>
-                  </div>
+                {links ? links.map(link => {
+                  const href = FOOTER_LINKS[link] || "#fonctionnalités"
+                  const common = { key: link, style: { display: "block", fontSize: 13, color: G.muted, marginBottom: 12, cursor: "pointer", transition: "color 0.15s", textDecoration: "none" }, onMouseOver: e => e.currentTarget.style.color = G.text, onMouseOut: e => e.currentTarget.style.color = G.muted }
+                  return href.startsWith('/')
+                    ? <Link to={href} {...common}>{link}</Link>
+                    : <a href={href} {...common}>{link}</a>
+                }) : (
+                  <NewsletterForm />
                 )}
               </div>
             ))}
@@ -1098,10 +1139,10 @@ export default function Landing() {
             <span style={{ fontSize: 12, color: G.muted }}>© 2025 CirclUp · Tous droits réservés</span>
             <div style={{ display: "flex", gap: 24 }}>
               {["Conditions d'utilisation", "Confidentialité", "Cookies"].map(l => (
-                <span key={l} style={{ fontSize: 12, color: G.muted, cursor: "pointer", transition: "color 0.15s" }}
+                <a key={l} href={FOOTER_LINKS[l] || "mailto:contact@circlup.fr"} style={{ fontSize: 12, color: G.muted, cursor: "pointer", transition: "color 0.15s", textDecoration: "none" }}
                   onMouseOver={e => e.currentTarget.style.color = G.text}
                   onMouseOut={e => e.currentTarget.style.color = G.muted}
-                >{l}</span>
+                >{l}</a>
               ))}
             </div>
           </div>
