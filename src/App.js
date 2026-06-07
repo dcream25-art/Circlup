@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 import Landing     from './pages/Landing'
+import PreLaunch   from './pages/PreLaunch'
 import Login       from './pages/Login'
 import Register    from './pages/Register'
 import Dashboard   from './pages/Dashboard'
@@ -50,10 +51,17 @@ function OnboardingRoute({ children }) {
   return children
 }
 
+// ── INTERRUPTEUR DE LANCEMENT ──────────────────────────────────────────────
+// true  = pré-lancement : "/" affiche la waitlist (PreLaunch), la landing
+//         complète reste accessible sur "/decouvrir" (preview interne).
+// false = lancé : "/" affiche la vraie landing. Le jour J, passer à false.
+const PRELAUNCH = true
+
 export default function App() {
   return (
     <Routes>
-      <Route path="/"           element={<Landing />} />
+      <Route path="/"           element={PRELAUNCH ? <PreLaunch /> : <Landing />} />
+      <Route path="/decouvrir"  element={<Landing />} />
       <Route path="/login"      element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/register"   element={<PublicRoute><Register /></PublicRoute>} />
       <Route path="/onboarding" element={<OnboardingRoute><Onboarding /></OnboardingRoute>} />
