@@ -91,6 +91,7 @@ export function useMissions() {
         const msg = missionError.message || ''
         if (msg.includes('LIMIT_REACHED')) return { success: false, error: 'LIMIT_REACHED', limitType: 'daily_missions', isPremium }
         if (msg.includes('SELF_MISSION')) return { success: false, error: 'Tu ne peux pas faire une mission sur ton propre post' }
+        if (msg.includes('COLLUSION_LIMIT')) return { success: false, error: 'Tu as déjà atteint la limite de missions pour ce membre cette semaine' }
         if (msg.includes('duplicate') || missionError.code === '23505') return { success: false, error: 'Mission déjà effectuée' }
         return { success: false, error: msg || 'Erreur mission' }
       }

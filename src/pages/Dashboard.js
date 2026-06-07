@@ -397,39 +397,57 @@ export default function Dashboard() {
     setMissionModal({ post, mission })
   }
 
+  // Ouvre la cible (boutique/réseau) via un lien TRACÉ côté serveur (preuve de clic)
+  const openTracked = async (post, mission) => {
+    const target = post.profiles?.shop_url || post.link_url
+    if (!target) { setToast("Ce membre n'a pas fourni de lien."); setTimeout(() => setToast(null), 2200); return false }
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const resp = await fetch('/api/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token || ''}` },
+        body: JSON.stringify({ postId: post.id, missionType: mission.id, targetUrl: target }),
+      })
+      const json = await resp.json().catch(() => ({}))
+      if (resp.ok && json.url) { window.open(json.url, '_blank', 'noopener'); return true }
+      // Repli : si le backend n'est pas dispo, on ouvre quand même la cible (sans tracking)
+      window.open(target, '_blank', 'noopener')
+      return false
+    } catch (e) {
+      window.open(target, '_blank', 'noopener')
+      return false
+    }
+  }
+
   const confirmMission = async () => {
     if (!missionModal) return
     const { post, mission } = missionModal
-    // La mission "buy" garde son flow spécifique
-    if (mission.id === 'buy') {
-      setBuyModal(post)
+    if (mission.id === 'buy') { setBuyModal(post); setMissionModal(null); return }
+
+    // VISITE : le clic tracé EST la mission (crédit auto au clic, vérifié serveur)
+    if (mission.id === 'visit') {
+      const ok = await openTracked(post, mission)
       setMissionModal(null)
+      setToast(ok ? "Visite ouverte — tes CP sont crédités au clic ✓" : "Boutique ouverte")
+      setTimeout(() => setToast(null), 2800)
+      setTimeout(() => { fetchProfile(user.id); fetchPosts() }, 3000)
       return
     }
-    // Missions nécessitant une preuve : la preuve est obligatoire
-    if (mission.needsProof && !proofUrl.trim()) {
-      return // le bouton est déjà désactivé, double sécurité
-    }
+
+    // Autres missions externes : preuve obligatoire, puis mise EN ATTENTE de validation
+    if (mission.needsProof && !proofUrl.trim()) return
     const proof = proofUrl.trim() || null
-    setMissionModal(null)
-    setProofUrl("")
+    setMissionModal(null); setProofUrl("")
     const result = await doMission(post.id, mission.id, proof)
     if (result.success) {
-      // Récompense réelle = barème pour 'buy' (frappe), sinon plafonnée au budget du post
-      const reward = mission.id === 'buy' ? mission.cp : Math.min(mission.cp, post.support_budget || 0)
-      if (reward > 0) {
-        setCpAnim({ amount: reward, label: mission.label })
-        setTimeout(() => setCpAnim(null), 1600)
-      } else {
-        setToast("Mission effectuée ! (post non doté — 0 CP, mais +XP)")
-        setTimeout(() => setToast(null), 2400)
-      }
-      fetchPosts() // met à jour le budget restant du post
+      setToast("Mission envoyée ! En attente de validation (72h max) ⏳")
+      setTimeout(() => setToast(null), 3000)
+      fetchPosts()
     } else if (result.error === 'LIMIT_REACHED') {
       setUpgradeModal(result.limitType || 'daily_missions')
     } else if (result.error) {
       setToast(`Impossible : ${result.error}`)
-      setTimeout(() => setToast(null), 2000)
+      setTimeout(() => setToast(null), 2400)
     }
   }
 
@@ -779,10 +797,10 @@ export default function Dashboard() {
                 <div style={{ fontSize: 14, fontWeight: 700, color: G.text }}>{missionModal.post.product}</div>
                 <div style={{ fontSize: 11, color: G.muted, marginTop: 2 }}>par {missionModal.post.profiles?.name}</div>
               </div>
-              {missionModal.post.profiles?.shop_url && (
-                <a href={missionModal.post.profiles.shop_url} target="_blank" rel="noreferrer" style={{ background: G.cyanL, border: `1px solid ${G.cyanB}`, color: G.cyan, padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 5, flexShrink: 0 }}>
+              {(missionModal.post.profiles?.shop_url || missionModal.post.link_url) && (
+                <button onClick={() => openTracked(missionModal.post, missionModal.mission)} style={{ background: G.cyanL, border: `1px solid ${G.cyanB}`, color: G.cyan, padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 5, flexShrink: 0, cursor: "pointer", fontFamily: G.sans }}>
                   Ouvrir <ExternalLink size={11} />
-                </a>
+                </button>
               )}
             </div>
             {missionModal.mission.needsProof && (
@@ -798,7 +816,7 @@ export default function Dashboard() {
               <button onClick={confirmMission} disabled={missionModal.mission.needsProof && !proofUrl.trim()}
                 className="btn-primary"
                 style={{ flex: 2, background: (!missionModal.mission.needsProof || proofUrl.trim()) ? "linear-gradient(135deg, #FF6A3D, #e04820)" : G.card2, boxShadow: (!missionModal.mission.needsProof || proofUrl.trim()) ? "0 4px 16px rgba(255,106,61,0.35)" : "none", border: "none", color: (!missionModal.mission.needsProof || proofUrl.trim()) ? "#fff" : G.faint, padding: "12px", borderRadius: 8, cursor: (!missionModal.mission.needsProof || proofUrl.trim()) ? "pointer" : "not-allowed", fontSize: 14, fontWeight: 700, fontFamily: G.sans, display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
-                <CheckCircle size={15} /> J'ai effectué cette mission
+                <CheckCircle size={15} /> {missionModal.mission.id === 'visit' ? 'Visiter la boutique' : "J'ai effectué cette mission"}
               </button>
             </div>
           </div>
@@ -1047,11 +1065,32 @@ export default function Dashboard() {
                           <div style={{ fontSize: 10, color: G.faint, marginTop: 3 }}>{new Date(n.created_at).toLocaleDateString('fr-FR')}</div>
                         </div>
                       </div>
-                      {n.actor_username && (
+                      {n.actor_username && n.type !== 'mission_pending' && (
                         <div style={{ marginTop: 9, paddingLeft: 40 }}>
                           <Link to={`/u/${n.actor_username}`} onClick={() => setNotifOpen(false)} style={{ display: "inline-flex", alignItems: "center", gap: 5, background: G.accentL, border: `1px solid ${G.accentB}`, color: G.accent, padding: "5px 12px", borderRadius: 7, fontSize: 11, fontWeight: 700, fontFamily: G.sans, textDecoration: "none" }}>
                             ↩ Rendre le soutien
                           </Link>
+                        </div>
+                      )}
+                      {n.type === 'mission_pending' && n.post_id && n.actor_username && (
+                        <div style={{ display: "flex", gap: 6, marginTop: 9, paddingLeft: 40 }}>
+                          <button onClick={async () => {
+                            const { data: actor } = await supabase.from('profiles').select('id').eq('username', n.actor_username).maybeSingle()
+                            if (!actor) return
+                            const { data: m } = await supabase.from('missions').select('id').eq('post_id', n.post_id).eq('user_id', actor.id).eq('status', 'pending').order('created_at', { ascending: false }).limit(1).maybeSingle()
+                            if (!m) { setToast("Mission introuvable ou déjà traitée"); setTimeout(() => setToast(null), 2000); return }
+                            await supabase.rpc('validate_mission', { p_mission_id: m.id, p_approve: true })
+                            await supabase.from('notifications').update({ is_read: true }).eq('id', n.id)
+                            setToast("Mission validée ✓"); setTimeout(() => setToast(null), 1800)
+                          }} style={{ background: G.cyanL, border: `1px solid ${G.cyanB}`, color: G.cyan, padding: "5px 12px", borderRadius: 7, cursor: "pointer", fontSize: 11, fontWeight: 700, fontFamily: G.sans }}>✓ Valider</button>
+                          <button onClick={async () => {
+                            const { data: actor } = await supabase.from('profiles').select('id').eq('username', n.actor_username).maybeSingle()
+                            if (!actor) return
+                            const { data: m } = await supabase.from('missions').select('id').eq('post_id', n.post_id).eq('user_id', actor.id).eq('status', 'pending').order('created_at', { ascending: false }).limit(1).maybeSingle()
+                            if (m) await supabase.rpc('validate_mission', { p_mission_id: m.id, p_approve: false })
+                            await supabase.from('notifications').update({ is_read: true }).eq('id', n.id)
+                            setToast("Mission refusée"); setTimeout(() => setToast(null), 1800)
+                          }} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.08)", color: G.faint, padding: "5px 12px", borderRadius: 7, cursor: "pointer", fontSize: 11, fontFamily: G.sans }}>✗ Refuser</button>
                         </div>
                       )}
                       {n.type === 'purchase_pending' && n.post_id && (
