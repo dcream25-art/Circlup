@@ -22,6 +22,15 @@ export const PREMIUM_DAILY_MISSION_LIMIT = 30
 // Limite de posts actifs (plan gratuit)
 export const FREE_POST_LIMIT = 2
 
+// ─── SOURCE UNIQUE DE VÉRITÉ DES PLANS ────────────────────────────────────
+// Utilisée par tous les gates côté client ET répliquée côté serveur (triggers).
+export const PLAN_LIMITS = {
+  free:    { posts: 2,         missions: 5,  label: 'Gratuit', price: 0 },
+  starter: { posts: 10,        missions: 20, label: 'Starter', price: 9.99 },
+  premium: { posts: Infinity,  missions: 30, label: 'Premium', price: 19.99 },
+}
+export const getPlanLimits = (plan) => PLAN_LIMITS[plan] || PLAN_LIMITS.free
+
 // Multiplicateur de streak : +10% tous les 7 jours, max +50%
 export function getStreakMultiplier(streak) {
   const bonus = Math.floor(streak / 7) * 0.10
@@ -65,7 +74,7 @@ export function useMissions() {
       // Pré-contrôle limite/jour côté client : seulement pour l'UX (ouvrir la modale
       // d'upgrade). La VRAIE limite est imposée par le serveur (trigger).
       const isPremium = profile?.plan === 'premium'
-      const dailyLimit = isPremium ? PREMIUM_DAILY_MISSION_LIMIT : FREE_DAILY_MISSION_LIMIT
+      const dailyLimit = getPlanLimits(profile?.plan).missions
       const today = new Date().toISOString().split('T')[0]
       const { count } = await supabase
         .from('missions').select('id', { count: 'exact', head: true })

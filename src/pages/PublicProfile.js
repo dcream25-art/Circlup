@@ -7,7 +7,7 @@ import {
   ExternalLink, Star, Crown, Award, Zap, Heart, Eye, ShoppingBag,
   TrendingUp, Flame, MapPin, Globe, CheckCircle, Instagram, Youtube,
   ShieldCheck, Sparkles, Target, Facebook, Twitter, Link2, Camera,
-  Pencil, X, Image as ImageIcon
+  Pencil, X, Image as ImageIcon, Rocket
 } from 'lucide-react'
 
 const G = {
@@ -255,8 +255,10 @@ export default function PublicProfile() {
         <div style={{ marginTop: -60, marginBottom: 24, position: 'relative' }}>
           <div style={{ display: 'flex', gap: 24, alignItems: 'flex-end', flexWrap: 'wrap' }}>
             <div style={{ position: 'relative' }}>
-              <Avatar name={profile.name} color={avatarColor} size={120} src={profile.avatar_url} />
-              {profile.plan === 'premium' && (
+              <span style={{ display: 'inline-flex', borderRadius: '50%', ...(profile.profile_frame === 'animated' ? { boxShadow: `0 0 0 3px ${G.gold}, 0 0 18px 4px rgba(245,197,24,0.5)` } : {}) }}>
+                <Avatar name={profile.name} color={avatarColor} size={120} src={profile.avatar_url} />
+              </span>
+              {profile.is_verified_badge && (
                 <div style={{ position: 'absolute', bottom: 6, right: 6, width: 28, height: 28, borderRadius: '50%', background: G.cyan, border: `3px solid ${G.bg}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <CheckCircle size={14} color="#050505" />
                 </div>
@@ -264,11 +266,19 @@ export default function PublicProfile() {
             </div>
             <div style={{ flex: 1, minWidth: 240, paddingBottom: 4 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 4 }}>
-                <h1 style={{ fontFamily: G.serif, fontSize: 30, fontWeight: 900, color: G.text, lineHeight: 1.1 }}>{profile.shop_name || profile.name}</h1>
-                {profile.plan === 'premium' && (
+                <h1 style={{ fontFamily: G.serif, fontSize: 30, fontWeight: 900, color: profile.pseudo_color || G.text, lineHeight: 1.1 }}>{profile.shop_name || profile.name}</h1>
+                {profile.is_verified_badge && (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: G.cyanL, border: `1px solid ${G.cyanB}`, borderRadius: 20, padding: '3px 10px', fontSize: 11, color: G.cyan, fontWeight: 700 }}>
                     <ShieldCheck size={11} /> Vérifié
                   </span>
+                )}
+                {profile.is_founder && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: G.goldL, border: `1px solid ${G.goldB}`, borderRadius: 20, padding: '3px 10px', fontSize: 11, color: G.gold, fontWeight: 800 }}>
+                    <Rocket size={11} /> Fondateur
+                  </span>
+                )}
+                {profile.rank_badge && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: G.accentL, border: `1px solid ${G.accentB}`, borderRadius: 20, padding: '3px 10px', fontSize: 11, color: G.accent, fontWeight: 800 }}>{profile.rank_badge}</span>
                 )}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>

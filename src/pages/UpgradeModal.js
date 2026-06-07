@@ -1,5 +1,6 @@
 import { X, Zap, Star, Target, Crown, ArrowRight, CheckCircle } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { PLAN_LIMITS, getPlanLimits } from '../hooks/useMissions'
 
 const G = {
   bg: "#050505", bg2: "#0A0A0A", bg3: "#0D0D0D",
@@ -12,160 +13,73 @@ const G = {
   serif: "'Playfair Display', Georgia, serif", sans: "'DM Sans', system-ui, sans-serif",
 }
 
-const LIMIT_MESSAGES = {
-  daily_missions: {
-    icon: <Target size={26} color={G.accent} />,
-    iconBg: G.accentL,
-    iconBorder: G.accentB,
-    title: "Limite de missions atteinte",
-    desc: "Tu as atteint ta limite de 5 missions par jour sur le plan gratuit.",
-    highlight: "Passe à Premium pour 30 missions/jour et des multiplicateurs de streak.",
-  },
-  post_limit: {
-    icon: <Star size={26} color={G.gold} />,
-    iconBg: G.goldL,
-    iconBorder: G.goldB,
-    title: "Limite de posts atteinte",
-    desc: "Le plan gratuit permet seulement 2 posts actifs en même temps.",
-    highlight: "Passe à Premium pour des posts illimités et plus de visibilité.",
-  },
-  premium_feature: {
-    icon: <Crown size={26} color={G.gold} />,
-    iconBg: G.goldL,
-    iconBorder: G.goldB,
-    title: "Fonctionnalité Premium",
-    desc: "Cette fonctionnalité est réservée aux membres Premium.",
-    highlight: "Débloques tout CirclUp pour seulement 9,99€/mois.",
-  },
+const HEAD = {
+  daily_missions: { icon: <Target size={26} color={G.accent} />, iconBg: G.accentL, iconBorder: G.accentB, title: "Limite de missions atteinte" },
+  post_limit:     { icon: <Star size={26} color={G.gold} />,     iconBg: G.goldL,   iconBorder: G.goldB,   title: "Limite de posts atteinte" },
+  premium_feature:{ icon: <Crown size={26} color={G.gold} />,    iconBg: G.goldL,   iconBorder: G.goldB,   title: "Fonctionnalité Premium" },
 }
 
-const FEATURES = [
-  "30 missions par jour (vs 5 en gratuit)",
-  "Posts illimités actifs",
-  "Multiplicateurs de streak jusqu'à +50%",
-  "Boost de post prioritaire",
-  "Badge Premium visible sur ton profil",
-]
+export default function UpgradeModal({ type = 'daily_missions', plan = 'free', onClose }) {
+  const head = HEAD[type] || HEAD.daily_missions
+  const cur = getPlanLimits(plan)
 
-export default function UpgradeModal({ type = 'daily_missions', onClose }) {
-  const msg = LIMIT_MESSAGES[type] || LIMIT_MESSAGES.daily_missions
+  // Description honnête, calée sur le plan ACTUEL de l'utilisateur
+  let desc
+  if (type === 'daily_missions') desc = `Tu as atteint ta limite de ${cur.missions} missions/jour (plan ${cur.label}).`
+  else if (type === 'post_limit') desc = `Ton plan ${cur.label} permet ${cur.posts === Infinity ? 'des posts illimités' : `${cur.posts} posts actifs`}.`
+  else desc = "Cette fonctionnalité fait partie des abonnements payants."
+
+  // On propose les paliers SUPÉRIEURS au plan courant
+  const order = ['free', 'starter', 'premium']
+  const upgrades = order.slice(order.indexOf(plan) + 1).map(k => ({ key: k, ...PLAN_LIMITS[k] }))
+  const tiers = upgrades.length ? upgrades : [{ key: 'premium', ...PLAN_LIMITS.premium }]
 
   return (
-    <div style={{
-      position: "fixed", inset: 0, zIndex: 2000,
-      background: "rgba(0,0,0,0.82)", backdropFilter: "blur(20px)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      padding: 20, fontFamily: G.sans,
-    }} onClick={onClose}>
+    <div style={{ position: "fixed", inset: 0, zIndex: 2000, background: "rgba(0,0,0,0.82)", backdropFilter: "blur(20px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, fontFamily: G.sans }} onClick={onClose}>
       <style>{`
         @keyframes modalUp { from { opacity:0; transform:translateY(20px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
-        .upgrade-feat-row { transition: background 0.15s; }
-        .upgrade-feat-row:hover { background: rgba(255,255,255,0.03) !important; }
         .upgrade-close-btn:hover { color: #fff !important; }
-        .upgrade-skip-btn:hover { border-color: rgba(255,255,255,0.12) !important; color: #9A9A9A !important; }
+        .upgrade-skip-btn:hover { border-color: rgba(255,255,255,0.12) !important; }
       `}</style>
 
-      <div onClick={e => e.stopPropagation()} style={{
-        background: G.bg2,
-        border: `1px solid rgba(255,255,255,0.08)`,
-        borderRadius: 20,
-        padding: "32px 28px",
-        maxWidth: 440,
-        width: "100%",
-        boxShadow: "0 48px 96px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04)",
-        animation: "modalUp 0.28s cubic-bezier(0.22,1,0.36,1) both",
-        position: "relative",
-      }}>
-
-        {/* Close */}
-        <button className="upgrade-close-btn" onClick={onClose} style={{
-          position: "absolute", top: 16, right: 16,
-          background: "transparent", border: "none",
-          cursor: "pointer", color: G.muted, padding: 4,
-          borderRadius: 6, transition: "color 0.15s",
-        }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: G.bg2, border: `1px solid rgba(255,255,255,0.08)`, borderRadius: 20, padding: "32px 28px", maxWidth: 460, width: "100%", boxShadow: "0 48px 96px rgba(0,0,0,0.7)", animation: "modalUp 0.28s cubic-bezier(0.22,1,0.36,1) both", position: "relative" }}>
+        <button className="upgrade-close-btn" onClick={onClose} style={{ position: "absolute", top: 16, right: 16, background: "transparent", border: "none", cursor: "pointer", color: G.muted, padding: 4, borderRadius: 6, transition: "color 0.15s" }}>
           <X size={17} />
         </button>
 
-        {/* Icon */}
-        <div style={{
-          width: 52, height: 52, borderRadius: 14,
-          background: msg.iconBg, border: `1px solid ${msg.iconBorder}`,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          marginBottom: 20,
-        }}>
-          {msg.icon}
+        <div style={{ width: 52, height: 52, borderRadius: 14, background: head.iconBg, border: `1px solid ${head.iconBorder}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
+          {head.icon}
         </div>
 
-        {/* Title + desc */}
-        <h2 style={{
-          fontFamily: G.serif, fontSize: 21, fontWeight: 900,
-          color: G.text, marginBottom: 8, lineHeight: 1.25,
-        }}>
-          {msg.title}
-        </h2>
-        <p style={{ fontSize: 14, color: G.muted, lineHeight: 1.7, marginBottom: 16 }}>
-          {msg.desc}
-        </p>
+        <h2 style={{ fontFamily: G.serif, fontSize: 21, fontWeight: 900, color: G.text, marginBottom: 8, lineHeight: 1.25 }}>{head.title}</h2>
+        <p style={{ fontSize: 14, color: G.muted, lineHeight: 1.7, marginBottom: 22 }}>{desc}</p>
 
-        {/* Highlight banner */}
-        <div style={{
-          background: G.goldL, border: `1px solid ${G.goldB}`,
-          borderRadius: 10, padding: "10px 14px", marginBottom: 24,
-        }}>
-          <p style={{ fontSize: 13, color: G.gold, margin: 0, fontWeight: 600 }}>
-            <Zap size={13} style={{ display: 'inline', marginRight: 6, verticalAlign: 'middle' }} />
-            {msg.highlight}
-          </p>
-        </div>
-
-        {/* Features list */}
-        <div style={{
-          background: G.card, border: `1px solid ${G.border}`,
-          borderRadius: 12, overflow: "hidden", marginBottom: 24,
-        }}>
-          {FEATURES.map((f, i) => (
-            <div key={f} className="upgrade-feat-row" style={{
-              display: "flex", alignItems: "center", gap: 10,
-              padding: "10px 14px",
-              borderBottom: i < FEATURES.length - 1 ? `1px solid ${G.border}` : "none",
-            }}>
-              <CheckCircle size={14} color={G.cyan} style={{ flexShrink: 0 }} />
-              <span style={{ fontSize: 13, color: G.muted }}>{f}</span>
+        {/* Offres supérieures — vraies limites, vrais prix */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 18 }}>
+          {tiers.map(t => (
+            <div key={t.key} style={{ background: G.card, border: `1px solid ${t.key === 'premium' ? G.goldB : G.border}`, borderRadius: 14, padding: "16px 18px" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  {t.key === 'premium' ? <Crown size={16} color={G.gold} /> : <Zap size={16} color={G.accent} />}
+                  <span style={{ fontFamily: G.serif, fontSize: 17, fontWeight: 900, color: G.text }}>{t.label}</span>
+                </div>
+                <div style={{ fontFamily: G.serif, fontSize: 20, fontWeight: 900, color: G.text }}>
+                  {t.price}€<span style={{ fontSize: 11, color: G.muted, fontWeight: 400 }}>/mois</span>
+                </div>
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 14px", marginBottom: 12 }}>
+                <span style={{ fontSize: 12, color: G.muted, display: "inline-flex", alignItems: "center", gap: 5 }}><CheckCircle size={12} color={G.cyan} /> {t.posts === Infinity ? 'Posts illimités' : `${t.posts} posts`}</span>
+                <span style={{ fontSize: 12, color: G.muted, display: "inline-flex", alignItems: "center", gap: 5 }}><CheckCircle size={12} color={G.cyan} /> {t.missions} missions/jour</span>
+              </div>
+              <Link to="/register" onClick={onClose} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: t.key === 'premium' ? "linear-gradient(135deg, #FF6A3D, #FF4D1C)" : G.card2, border: t.key === 'premium' ? "none" : `1px solid ${G.border}`, color: t.key === 'premium' ? "#fff" : G.text, padding: "11px", borderRadius: 10, fontSize: 14, fontWeight: 700, fontFamily: G.sans, textDecoration: "none" }}>
+                Choisir {t.label} <ArrowRight size={14} />
+              </Link>
             </div>
           ))}
         </div>
 
-        {/* Prix + CTA */}
-        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 12 }}>
-          <div style={{ flexShrink: 0 }}>
-            <div style={{ fontFamily: G.serif, fontSize: 30, fontWeight: 900, color: G.text, lineHeight: 1 }}>
-              9,99€
-            </div>
-            <div style={{ fontSize: 11, color: G.muted, marginTop: 3 }}>par mois · sans engagement</div>
-          </div>
-          <Link to="/register" onClick={onClose} style={{
-            flex: 1,
-            background: "linear-gradient(135deg, #FF6A3D, #FF4D1C)",
-            boxShadow: "0 4px 20px rgba(255,106,61,0.35), inset 0 1px 0 rgba(255,255,255,0.15)",
-            border: "none", color: "#fff",
-            padding: "14px 20px", borderRadius: 12,
-            fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: G.sans,
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-            textDecoration: "none",
-          }}>
-            <Crown size={15} fill="#fff" stroke="none" /> Passer à Premium <ArrowRight size={14} />
-          </Link>
-        </div>
-
-        <button className="upgrade-skip-btn" onClick={onClose} style={{
-          width: "100%", background: "transparent",
-          border: `1px solid ${G.border}`, color: G.faint,
-          padding: "10px", borderRadius: 10,
-          cursor: "pointer", fontSize: 13, fontFamily: G.sans,
-          transition: "border-color 0.15s, color 0.15s",
-        }}>
-          Continuer en gratuit
+        <button className="upgrade-skip-btn" onClick={onClose} style={{ width: "100%", background: "transparent", border: `1px solid ${G.border}`, color: G.faint, padding: "10px", borderRadius: 10, cursor: "pointer", fontSize: 13, fontFamily: G.sans, transition: "border-color 0.15s" }}>
+          Plus tard
         </button>
       </div>
     </div>

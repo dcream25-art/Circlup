@@ -8,7 +8,7 @@ import { usePoints } from '../hooks/usePoints'
 import { uploadFile } from '../hooks/useStorage'
 import UpgradeModal from './UpgradeModal'
 import BuyMissionModal from './BuyMissionModal'
-import { FREE_POST_LIMIT } from '../hooks/useMissions'
+import { FREE_POST_LIMIT, getPlanLimits } from '../hooks/useMissions'
 import { supabase } from '../lib/supabase'
 import {
   Star, Eye, Heart, MessageCircle, Share2, Pin, Search, ShoppingBag,
@@ -400,6 +400,7 @@ export default function Dashboard() {
   const [cpAnim, setCpAnim]         = useState(null)
   const [toast, setToast]           = useState(null)
   const [missionsToday, setMissionsToday] = useState(0)
+  const [realVisits, setRealVisits] = useState(0)
   const [showForm, setShowForm]     = useState(false)
   const [feedFilter, setFeedFilter] = useState("pour-toi")
   const [bookmarked, setBookmarked] = useState({})
@@ -457,6 +458,12 @@ export default function Dashboard() {
           .from('missions').select('id', { count: 'exact', head: true })
           .eq('user_id', user.id).gte('created_at', today + 'T00:00:00')
         setMissionsToday(count || 0)
+
+        // Vraies visites tracées reçues sur mes posts (missions 'visit' vérifiées)
+        const { count: visits } = await supabase
+          .from('missions').select('id, posts!inner(user_id)', { count: 'exact', head: true })
+          .eq('mission_type', 'visit').eq('posts.user_id', user.id)
+        setRealVisits(visits || 0)
       }
     }
     loadData()
@@ -567,9 +574,9 @@ export default function Dashboard() {
   const handlePublish = async () => {
     if (!nProduct.trim() || !nStory.trim()) return
     // Vérification limite plan gratuit
-    const isPremium = profile?.plan === 'premium'
+    const postLimit = getPlanLimits(profile?.plan).posts
     const myActivePosts = posts.filter(p => p.user_id === user?.id).length
-    if (!isPremium && myActivePosts >= FREE_POST_LIMIT) {
+    if (myActivePosts >= postLimit) {
       setUpgradeModal('post_limit')
       return
     }
@@ -597,6 +604,11 @@ export default function Dashboard() {
         else if (budget > 0) setToast(`Post publié et doté de ${budget} CP 🎁`)
         else setToast("Post publié ✓")
         setTimeout(() => setToast(null), 2400)
+      } else if ((result.error?.message || '').includes('POST_LIMIT_REACHED')) {
+        setUpgradeModal('post_limit')
+      } else if (result.error) {
+        setToast("Publication impossible : " + (result.error.message || 'erreur'))
+        setTimeout(() => setToast(null), 2600)
       }
     } finally {
       setUploading(false)
@@ -859,7 +871,7 @@ export default function Dashboard() {
       <div id="circlup-bg-orb2" />
 
       {/* Modals */}
-      {upgradeModal && <UpgradeModal type={upgradeModal} onClose={() => setUpgradeModal(null)} />}
+      {upgradeModal && <UpgradeModal type={upgradeModal} plan={profile?.plan} onClose={() => setUpgradeModal(null)} />}
       {lightbox && <Lightbox src={lightbox.src} alt={lightbox.alt} onClose={() => setLightbox(null)} />}
       {buyModal && <BuyMissionModal post={buyModal} user={user} onClose={() => setBuyModal(null)} onSuccess={() => fetchPosts()} />}
 
@@ -1406,35 +1418,37 @@ export default function Dashboard() {
                 ))}
               </div>
 
-              {/* Signaux algorithme */}
+              {/* Tes signaux réels */}
               <div style={{ background: G.card, border: `1px solid ${G.border}`, borderRadius: 12, padding: "22px 24px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
                   <div style={{ width: 32, height: 32, borderRadius: 8, background: G.cyanL, border: `1px solid ${G.cyanB}`, display: "flex", alignItems: "center", justifyContent: "center" }}><TrendingUp size={16} color={G.cyan} /></div>
-                  <span style={{ fontSize: 15, fontWeight: 800 }}>Signaux Algorithme</span>
-                  <span style={{ fontSize: 11, color: G.faint, background: "rgba(255,255,255,0.05)", border: `1px solid ${G.border}`, borderRadius: 6, padding: "2px 8px" }}>Etsy · Shopify</span>
+                  <span style={{ fontSize: 15, fontWeight: 800 }}>Tes signaux réels</span>
                 </div>
-                {[
-                  { label: "Favoris générés",    val: posts.filter(p => p.user_id === user?.id).reduce((a, p) => a + (p.favorites_count || 0), 0), max: 50,  color: G.gold,   SigIcon: Star    },
-                  { label: "Avis vérifiés",       val: posts.filter(p => p.user_id === user?.id).reduce((a, p) => a + (p.reviews_count || 0), 0),   max: 15,  color: G.cyan,   SigIcon: Search  },
-                  { label: "Partages story",      val: posts.filter(p => p.user_id === user?.id).reduce((a, p) => a + (p.shares_count || 0), 0),    max: 30,  color: G.accent, SigIcon: Share2  },
-                  { label: "Visites boutique",    val: posts.filter(p => p.user_id === user?.id).reduce((a, p) => a + (p.likes_count || 0), 0),     max: 100, color: G.cyan,   SigIcon: Eye     },
-                ].map(({ label, val, max, color, SigIcon }) => (
-                  <div key={label} style={{ marginBottom: 16 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <SigIcon size={14} color={color} />
-                        <span style={{ fontSize: 13, fontWeight: 600 }}>{label}</span>
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <p style={{ fontSize: 11, color: G.faint, margin: "0 0 18px 42px" }}>Soutien réellement reçu sur tes posts</p>
+                {(() => {
+                  const mine = posts.filter(p => p.user_id === user?.id)
+                  const sig = [
+                    { label: "Visites tracées", val: realVisits, color: G.cyan, SigIcon: Eye },
+                    { label: "Favoris reçus",   val: mine.reduce((a, p) => a + (p.favorites_count || 0), 0), color: G.gold, SigIcon: Star },
+                    { label: "Avis reçus",      val: mine.reduce((a, p) => a + (p.reviews_count || 0), 0),   color: G.cyan, SigIcon: Search },
+                    { label: "Partages",        val: mine.reduce((a, p) => a + (p.shares_count || 0), 0),    color: G.accent, SigIcon: Share2 },
+                  ]
+                  const sigMax = Math.max(...sig.map(s => s.val), 1)
+                  return sig.map(({ label, val, color, SigIcon }) => (
+                    <div key={label} style={{ marginBottom: 16 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <SigIcon size={14} color={color} />
+                          <span style={{ fontSize: 13, fontWeight: 600 }}>{label}</span>
+                        </div>
                         <span style={{ fontFamily: G.num, fontSize: 18, fontWeight: 700, color }}>{val}</span>
-                        <span style={{ fontSize: 11, color: G.faint }}>/ {max}</span>
+                      </div>
+                      <div style={{ height: 5, background: "rgba(255,255,255,0.07)", borderRadius: 3, overflow: "hidden" }}>
+                        <div style={{ width: `${Math.min(val / sigMax * 100, 100)}%`, height: "100%", background: `linear-gradient(90deg, ${color}aa, ${color})`, borderRadius: 3, transition: "width 0.8s ease" }} />
                       </div>
                     </div>
-                    <div style={{ height: 5, background: "rgba(255,255,255,0.07)", borderRadius: 3, overflow: "hidden" }}>
-                      <div style={{ width: `${Math.min(val / max * 100, 100)}%`, height: "100%", background: `linear-gradient(90deg, ${color}aa, ${color})`, borderRadius: 3, transition: "width 0.8s ease" }} />
-                    </div>
-                  </div>
-                ))}
+                  ))
+                })()}
               </div>
             </div>
           )}
@@ -2297,7 +2311,7 @@ export default function Dashboard() {
 
           {/* Objectif du jour — données réelles */}
           {(() => {
-            const dailyLimit = profile?.plan === 'premium' ? 30 : 5
+            const dailyLimit = getPlanLimits(profile?.plan).missions
             const pct = Math.min(missionsToday / dailyLimit * 100, 100)
             const reached = missionsToday >= dailyLimit
             return (

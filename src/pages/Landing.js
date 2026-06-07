@@ -1117,8 +1117,8 @@ export default function Landing() {
             {/* Columns */}
             {[
               ["Produit", ["Fonctionnalités", "Tarifs", "Missions", "CP & Rangs"]],
-              ["Ressources", ["Blog", "Guides", "Témoignages", "Affiliation"]],
-              ["Entreprise", ["À propos", "Contact", "CGU", "Confidentialité"]],
+              ["Ressources", ["Témoignages", "Affiliation"]],
+              ["Entreprise", ["Contact", "CGU", "Confidentialité"]],
               ["Rester informé", null],
             ].map(([title, links]) => (
               <div key={title}>

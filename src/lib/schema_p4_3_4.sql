@@ -127,7 +127,7 @@ begin
       raise exception 'COOLDOWN';
     end if;
     select coalesce(streak,0), coalesce(plan,'free') into v_streak, v_plan from profiles where id = new.user_id;
-    v_limit := case when v_plan = 'premium' then 30 else 5 end;
+    v_limit := case when v_plan = 'premium' then 30 when v_plan = 'starter' then 20 else 5 end;
     select count(*) into v_count from missions
       where user_id = new.user_id and created_at >= date_trunc('day', now());
     if v_count >= v_limit then raise exception 'LIMIT_REACHED'; end if;
