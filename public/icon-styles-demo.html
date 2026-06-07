@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CirclUp — Propositions d'icônes</title>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:#050505; --bg2:#0A0A0A; --card:rgba(255,255,255,0.03);
+    --border:rgba(255,255,255,0.06); --text:#fff; --muted:#A8A8A8;
+    --accent:#FF6A3D; --cyan:#00D5D5; --gold:#F5C518; --num:'Space Grotesk',sans-serif;
+  }
+  body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; padding:48px 5%; }
+  h1 { font-family:'Playfair Display',serif; font-size:34px; margin-bottom:6px; }
+  .sub { color:var(--muted); font-size:15px; margin-bottom:48px; }
+  .section { margin-bottom:56px; }
+  .section-head { display:flex; align-items:baseline; gap:14px; margin-bottom:20px; }
+  .section-head h2 { font-family:'Playfair Display',serif; font-size:22px; }
+  .tag { font-size:11px; color:var(--muted); border:1px solid var(--border); border-radius:20px; padding:3px 12px; }
+  .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; }
+  .kpi { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:22px 20px; position:relative; overflow:hidden; }
+  .kpi .label { font-size:10px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; font-weight:600; margin-bottom:16px; display:block; }
+  .kpi .val { font-family:var(--num); font-size:40px; font-weight:700; letter-spacing:-1.5px; line-height:1; }
+  .ico-wrap { position:absolute; top:18px; right:18px; }
+
+  /* A — Stripe duotone */
+  .a .box { width:48px; height:48px; border-radius:13px; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(150deg, color-mix(in srgb, var(--c) 22%, transparent), color-mix(in srgb, var(--c) 6%, transparent));
+    border:1px solid color-mix(in srgb, var(--c) 30%, transparent);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 0 18px color-mix(in srgb, var(--c) 18%, transparent); }
+  .a .box svg { stroke:var(--c); width:22px; height:22px; }
+
+  /* B — Linear mono */
+  .b .box svg { stroke:#cfcfcf; width:22px; height:22px; }
+
+  /* C — Raycast gradient glossy */
+  .c .box { width:48px; height:48px; border-radius:13px; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(160deg, color-mix(in srgb, var(--c) 95%, white) 0%, var(--c) 55%, color-mix(in srgb, var(--c) 70%, black) 100%);
+    box-shadow: inset 0 1.5px 0 rgba(255,255,255,0.45), inset 0 -2px 6px rgba(0,0,0,0.25), 0 6px 18px color-mix(in srgb, var(--c) 40%, transparent); }
+  .c .box svg { stroke:#fff; width:22px; height:22px; filter:drop-shadow(0 1px 1px rgba(0,0,0,0.25)); }
+
+  /* D — Vercel geometric mono */
+  .d .box { width:46px; height:46px; border-radius:11px; display:flex; align-items:center; justify-content:center;
+    background:#111; border:1px solid rgba(255,255,255,0.14); }
+  .d .box svg { stroke:#fff; width:20px; height:20px; }
+
+  .note { font-size:12px; color:var(--muted); margin-top:14px; line-height:1.6; }
+  .pick { display:inline-block; margin-top:10px; font-size:12px; color:var(--accent); font-weight:700; }
+</style>
+</head>
+<body>
+  <h1>CirclUp — 4 propositions d'icônes</h1>
+  <p class="sub">Mêmes données, 4 traitements premium. Dis-moi le numéro que tu préfères (ou un mix).</p>
+
+  <!-- A -->
+  <div class="section">
+    <div class="section-head"><h2>Option A — Stripe · Duotone dégradé</h2><span class="tag">raffiné · coloré</span></div>
+    <div class="grid a">
+      <div class="kpi"><span class="label">Favoris reçus</span><div class="val" style="color:var(--gold)">0</div><div class="ico-wrap"><div class="box" style="--c:var(--gold)"><i data-lucide="star"></i></div></div></div>
+      <div class="kpi"><span class="label">Missions faites</span><div class="val" style="color:var(--cyan)">7</div><div class="ico-wrap"><div class="box" style="--c:var(--cyan)"><i data-lucide="target"></i></div></div></div>
+      <div class="kpi"><span class="label">CP total</span><div class="val" style="color:var(--accent)">147</div><div class="ico-wrap"><div class="box" style="--c:var(--accent)"><i data-lucide="zap"></i></div></div></div>
+      <div class="kpi"><span class="label">Posts actifs</span><div class="val" style="color:var(--cyan)">0</div><div class="ico-wrap"><div class="box" style="--c:var(--cyan)"><i data-lucide="trending-up"></i></div></div></div>
+    </div>
+    <p class="note">Dégradé doux teinté + highlight interne + glow couleur. Élégant, lisible, "fintech premium".</p>
+    <span class="pick">→ Choisir A</span>
+  </div>
+
+  <!-- B -->
+  <div class="section">
+    <div class="section-head"><h2>Option B — Linear · Mono minimal</h2><span class="tag">épuré · sobre</span></div>
+    <div class="grid b">
+      <div class="kpi"><span class="label">Favoris reçus</span><div class="val" style="color:var(--gold)">0</div><div class="ico-wrap"><div class="box"><i data-lucide="star"></i></div></div></div>
+      <div class="kpi"><span class="label">Missions faites</span><div class="val" style="color:var(--cyan)">7</div><div class="ico-wrap"><div class="box"><i data-lucide="target"></i></div></div></div>
+      <div class="kpi"><span class="label">CP total</span><div class="val" style="color:var(--accent)">147</div><div class="ico-wrap"><div class="box"><i data-lucide="zap"></i></div></div></div>
+      <div class="kpi"><span class="label">Posts actifs</span><div class="val" style="color:var(--cyan)">0</div><div class="ico-wrap"><div class="box"><i data-lucide="trending-up"></i></div></div></div>
+    </div>
+    <p class="note">Aucune boîte. Icône gris clair discrète, la couleur sert au chiffre. Le plus "tech haut de gamme".</p>
+    <span class="pick">→ Choisir B</span>
+  </div>
+
+  <!-- C -->
+  <div class="section">
+    <div class="section-head"><h2>Option C — Raycast · Gradient glossy</h2><span class="tag">audacieux · profond</span></div>
+    <div class="grid c">
+      <div class="kpi"><span class="label">Favoris reçus</span><div class="val" style="color:var(--gold)">0</div><div class="ico-wrap"><div class="box" style="--c:var(--gold)"><i data-lucide="star"></i></div></div></div>
+      <div class="kpi"><span class="label">Missions faites</span><div class="val" style="color:var(--cyan)">7</div><div class="ico-wrap"><div class="box" style="--c:var(--cyan)"><i data-lucide="target"></i></div></div></div>
+      <div class="kpi"><span class="label">CP total</span><div class="val" style="color:var(--accent)">147</div><div class="ico-wrap"><div class="box" style="--c:var(--accent)"><i data-lucide="zap"></i></div></div></div>
+      <div class="kpi"><span class="label">Posts actifs</span><div class="val" style="color:var(--cyan)">0</div><div class="ico-wrap"><div class="box" style="--c:var(--cyan)"><i data-lucide="trending-up"></i></div></div></div>
+    </div>
+    <p class="note">Icône blanche sur dégradé saturé, gloss interne + ombre portée couleur. Punchy et premium.</p>
+    <span class="pick">→ Choisir C</span>
+  </div>
+
+  <!-- D -->
+  <div class="section">
+    <div class="section-head"><h2>Option D — Vercel · Géométrique mono</h2><span class="tag">technique · net</span></div>
+    <div class="grid d">
+      <div class="kpi"><span class="label">Favoris reçus</span><div class="val" style="color:var(--gold)">0</div><div class="ico-wrap"><div class="box"><i data-lucide="star"></i></div></div></div>
+      <div class="kpi"><span class="label">Missions faites</span><div class="val" style="color:var(--cyan)">7</div><div class="ico-wrap"><div class="box"><i data-lucide="target"></i></div></div></div>
+      <div class="kpi"><span class="label">CP total</span><div class="val" style="color:var(--accent)">147</div><div class="ico-wrap"><div class="box"><i data-lucide="zap"></i></div></div></div>
+      <div class="kpi"><span class="label">Posts actifs</span><div class="val" style="color:var(--cyan)">0</div><div class="ico-wrap"><div class="box"><i data-lucide="trending-up"></i></div></div></div>
+    </div>
+    <p class="note">Bordure hairline, fond quasi-noir, icône blanche haute lisibilité. Sobre et carré.</p>
+    <span class="pick">→ Choisir D</span>
+  </div>
+
+  <script>lucide.createIcons();</script>
+</body>
+</html>

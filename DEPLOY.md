@@ -15,8 +15,14 @@
 
 5. Va dans "SQL Editor" (menu gauche)
 6. Clique "New Query"
-7. Copie-colle tout le contenu du fichier : src/lib/schema.sql
+7. Copie-colle tout le contenu du fichier : src/lib/schema_complet.sql
+   ⚠️ UN SEUL fichier à exécuter : schema_complet.sql (il remplace et regroupe
+   schema.sql + schema-update.sql + schema-profile-social.sql + schema-projects.sql
+   + schema-mission-proof.sql). N'exécute PAS les anciens fichiers : l'app planterait.
 8. Clique "Run" → tu verras "Success"
+8b. Ouvre une NOUVELLE query, colle tout le contenu de : src/lib/schema_p1_security.sql
+    puis "Run". (Sécurité de l'économie : verrouille la triche. À lancer APRÈS
+    schema_complet.sql.) → "Success"
 
 9. Va dans Settings > API
 10. Copie :
