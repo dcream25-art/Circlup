@@ -62,7 +62,7 @@ export function usePosts() {
     return () => supabase.removeChannel(feedChannel)
   }, [fetchPosts])
 
-  const createPost = async ({ product, price, story, ask, tags, imageUrl, linkUrl, postType }) => {
+  const createPost = async ({ product, price, story, ask, tags, imageUrl, linkUrl, postType, supportBudget = 0 }) => {
     if (!user) return { error: 'Non connecté' }
 
     // Calcul du score
@@ -99,7 +99,18 @@ export function usePosts() {
 
     if (insertError) return { error: insertError }
 
-    // 2. Points (+10 CP / +15 XP) crédités côté serveur par trigger sur l'insert.
+    // 2. Dotation optionnelle : déplace des CP de l'auteur vers le budget du post
+    //    (escrow). Ces CP récompenseront ceux qui font des missions sur ce post.
+    if (supportBudget > 0) {
+      const { data: funded } = await supabase.rpc('fund_post', {
+        p_post_id: post.id, p_amount: supportBudget,
+      })
+      if (funded === false) {
+        // Pas assez de CP : le post est créé mais non doté (on le signale au caller)
+        await fetchPosts()
+        return { data: post, fundingFailed: true }
+      }
+    }
 
     // 3. Rafraîchir le feed — toujours exécuté
     await fetchPosts()
@@ -238,9 +249,21 @@ export function usePosts() {
     }
   }
 
+  // Recharger le budget de soutien d'un post existant (escrow)
+  const fundPost = async (postId, amount) => {
+    if (!user || !amount || amount <= 0) return { success: false }
+    try {
+      const { data } = await supabase.rpc('fund_post', { p_post_id: postId, p_amount: amount })
+      if (data) await fetchPosts()
+      return { success: !!data }
+    } catch (err) {
+      return { success: false, error: err.message }
+    }
+  }
+
   return {
     posts, myPosts, loading,
-    createPost, likePost, favoritePost, addComment, boostPost, deletePost, sharePost,
+    createPost, likePost, favoritePost, addComment, boostPost, deletePost, sharePost, fundPost,
     fetchPosts, fetchMyPosts,
   }
 }

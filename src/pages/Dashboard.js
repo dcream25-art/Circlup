@@ -156,9 +156,9 @@ const CP_SHOP = [
     id: "reduction_abo",
     ShopIcon: CreditCard,
     title: "Bon de réduction -1€",
-    desc: "1€ de réduction sur ton prochain mois d'abonnement CirclUp. Cumulable.",
+    desc: "Convertis 1000 CP en 1€ de réduction sur ton abonnement CirclUp. Cumulable.",
     cost: 1000,
-    color: G.accent, badge: "Bientôt", comingSoon: true,
+    color: G.accent, badge: "Disponible",
     category: "économies",
   },
 ]
@@ -318,7 +318,7 @@ function PostStory({ story }) {
 
 export default function Dashboard() {
   const { user, profile, signOut, fetchProfile } = useAuth()
-  const { posts, loading, createPost, likePost, favoritePost, deletePost, sharePost, fetchPosts } = usePosts()
+  const { posts, loading, createPost, likePost, favoritePost, deletePost, sharePost, fetchPosts, fundPost } = usePosts()
   const { doMission }            = useMissions()
   const { notifications, unreadCount, markAllAsRead } = useNotifications()
   const { openDailyChest, hasOpenedChestToday } = usePoints()
@@ -353,6 +353,7 @@ export default function Dashboard() {
   const [nImage, setNImage]     = useState(null)   // File object
   const [nImagePreview, setNImagePreview] = useState(null) // preview URL
   const [nLink, setNLink]       = useState("")
+  const [nBudget, setNBudget]   = useState(0)   // dotation CP du post (escrow, optionnel)
   const [uploading, setUploading] = useState(false)
   const [avatarUploading, setAvatarUploading] = useState(false)
 
@@ -411,8 +412,16 @@ export default function Dashboard() {
     setProofUrl("")
     const result = await doMission(post.id, mission.id, proof)
     if (result.success) {
-      setCpAnim({ amount: result.pointsEarned || mission.cp, label: mission.label })
-      setTimeout(() => setCpAnim(null), 1600)
+      // Récompense réelle = barème pour 'buy' (frappe), sinon plafonnée au budget du post
+      const reward = mission.id === 'buy' ? mission.cp : Math.min(mission.cp, post.support_budget || 0)
+      if (reward > 0) {
+        setCpAnim({ amount: reward, label: mission.label })
+        setTimeout(() => setCpAnim(null), 1600)
+      } else {
+        setToast("Mission effectuée ! (post non doté — 0 CP, mais +XP)")
+        setTimeout(() => setToast(null), 2400)
+      }
+      fetchPosts() // met à jour le budget restant du post
     } else if (result.error === 'LIMIT_REACHED') {
       setUpgradeModal(result.limitType || 'daily_missions')
     } else if (result.error) {
@@ -479,17 +488,22 @@ export default function Dashboard() {
         if (imgErr) { console.error('Image upload error:', imgErr) }
         else imageUrl = url
       }
+      const budget = Math.max(0, parseInt(nBudget, 10) || 0)
       const result = await createPost({
         product: nProduct, price: nPrice, story: nStory,
         ask: nAsk, tags: [], imageUrl, linkUrl: nLink || null,
+        supportBudget: budget,
       })
       if (!result.error) {
         setNProduct(""); setNPrice(""); setNStory(""); setNAsk("")
-        setNImage(null); setNImagePreview(null); setNLink("")
+        setNImage(null); setNImagePreview(null); setNLink(""); setNBudget(0)
         if (postImageInputRef.current) postImageInputRef.current.value = ''
         setShowForm(false)
-        setCpAnim({ amount: 10, label: "Post publié" })
-        setTimeout(() => setCpAnim(null), 1600)
+        fetchProfile(user.id) // CP mis à jour si dotation
+        if (result.fundingFailed) setToast("Post publié — dotation refusée (CP insuffisants)")
+        else if (budget > 0) setToast(`Post publié et doté de ${budget} CP 🎁`)
+        else setToast("Post publié ✓")
+        setTimeout(() => setToast(null), 2400)
       }
     } finally {
       setUploading(false)
@@ -518,6 +532,13 @@ export default function Dashboard() {
         if (!data) { setToast('CP insuffisants'); setTimeout(() => setToast(null), 2000); return }
         setToast("👑 Badge VIP activé !")
         setTimeout(() => setToast(null), 2400)
+      } else if (item.id === 'reduction_abo') {
+        // Conversion CP → crédit de réduction d'abonnement (puits réel, consommé par Stripe en P2)
+        const { data, error } = await supabase.rpc('redeem_cp_for_discount', { p_cp: 1000 })
+        if (error) { console.error('redeem error:', error); setToast("Erreur lors de la conversion"); setTimeout(() => setToast(null), 2500); return }
+        if (!data) { setToast('CP insuffisants (1000 CP requis)'); setTimeout(() => setToast(null), 2200); return }
+        setToast("✅ 1€ de réduction ajouté à ton abonnement !")
+        setTimeout(() => setToast(null), 2600)
       } else {
         // Dépense sécurisée : le serveur ne débite que l'appelant
         const { data: spent, error: spendErr } = await supabase.rpc('spend_points', {
@@ -728,10 +749,26 @@ export default function Dashboard() {
                 <missionModal.mission.Icon size={36} color={G.accent} />
               </div>
               <h3 style={{ fontFamily: G.serif, fontSize: 22, fontWeight: 900, marginBottom: 8, color: G.text }}>{missionModal.mission.label}</h3>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: G.goldL, border: `1px solid ${G.goldB}`, borderRadius: 20, padding: "5px 16px" }}>
-                <Zap size={13} color={G.gold} />
-                <span style={{ fontSize: 14, color: G.gold, fontWeight: 800 }}>+{missionModal.mission.cp} CP</span>
-              </div>
+              {(() => {
+                const m = missionModal.mission
+                const budget = missionModal.post.support_budget || 0
+                const reward = m.id === 'buy' ? m.cp : Math.min(m.cp, budget)
+                return (
+                  <>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: G.goldL, border: `1px solid ${G.goldB}`, borderRadius: 20, padding: "5px 16px" }}>
+                      <Zap size={13} color={G.gold} />
+                      <span style={{ fontSize: 14, color: G.gold, fontWeight: 800 }}>+{reward} CP</span>
+                    </div>
+                    {m.id !== 'buy' && reward < m.cp && (
+                      <div style={{ fontSize: 11, color: G.faint, marginTop: 8, lineHeight: 1.5 }}>
+                        {budget > 0
+                          ? `Budget du post bientôt épuisé (${budget} CP restants)`
+                          : "Post non doté — tu gagnes 0 CP, mais tu gagnes de l'XP et tu aides un membre 💛"}
+                      </div>
+                    )}
+                  </>
+                )
+              })()}
             </div>
             <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 14, padding: "14px 18px", marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
               <div>
@@ -959,6 +996,13 @@ export default function Dashboard() {
                           <div style={{ fontSize: 10, color: G.faint, marginTop: 3 }}>{new Date(n.created_at).toLocaleDateString('fr-FR')}</div>
                         </div>
                       </div>
+                      {n.actor_username && (
+                        <div style={{ marginTop: 9, paddingLeft: 40 }}>
+                          <Link to={`/u/${n.actor_username}`} onClick={() => setNotifOpen(false)} style={{ display: "inline-flex", alignItems: "center", gap: 5, background: G.accentL, border: `1px solid ${G.accentB}`, color: G.accent, padding: "5px 12px", borderRadius: 7, fontSize: 11, fontWeight: 700, fontFamily: G.sans, textDecoration: "none" }}>
+                            ↩ Rendre le soutien
+                          </Link>
+                        </div>
+                      )}
                       {n.type === 'purchase_pending' && n.post_id && (
                         <div style={{ display: "flex", gap: 6, marginTop: 9, paddingLeft: 40 }}>
                           <button onClick={async () => {
@@ -1315,9 +1359,29 @@ export default function Dashboard() {
                       </div>
                     </div>
 
+                    {/* Dotation de soutien (escrow) — optionnel */}
+                    <div style={{ marginBottom: 14, background: "rgba(255,106,61,0.05)", border: `1px solid ${G.accentB}`, borderRadius: 10, padding: "12px 14px" }}>
+                      <label style={{ fontSize: 10, color: G.accent, display: "block", marginBottom: 5, letterSpacing: 0.7, textTransform: "uppercase", fontWeight: 700 }}>Dotation de soutien (optionnel)</label>
+                      <p style={{ fontSize: 11, color: G.muted, margin: "0 0 9px", lineHeight: 1.5 }}>
+                        Les CP que tu mets ici récompensent les membres qui font des missions sur ton post. Tu as <strong style={{ color: G.gold }}>{profile?.cp || 0} CP</strong>.
+                      </p>
+                      <div style={{ display: "flex", gap: 7, alignItems: "center", flexWrap: "wrap" }}>
+                        {[0, 50, 100, 250].map(v => (
+                          <button key={v} type="button" onClick={() => setNBudget(v)} style={{
+                            background: Number(nBudget) === v ? G.accent : "rgba(255,255,255,0.05)",
+                            border: `1px solid ${Number(nBudget) === v ? G.accent : G.border}`,
+                            color: Number(nBudget) === v ? "#fff" : G.muted,
+                            padding: "6px 13px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontWeight: 600, fontFamily: G.sans,
+                          }}>{v === 0 ? "Aucune" : `${v} CP`}</button>
+                        ))}
+                        <input type="number" min="0" placeholder="Autre" value={nBudget || ""} onChange={e => setNBudget(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                          style={{ ...inp, width: 90, padding: "6px 10px" }} />
+                      </div>
+                    </div>
+
                     <div style={{ display: "flex", gap: 9 }}>
                       <button onClick={handlePublish} disabled={!nProduct || !nStory || uploading} style={{ background: G.accent, border: "none", color: "#fff", padding: "10px 22px", borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: (!nProduct || !nStory || uploading) ? "not-allowed" : "pointer", fontFamily: G.sans, opacity: (!nProduct || !nStory || uploading) ? 0.5 : 1, display: "flex", alignItems: "center", gap: 6 }}>
-                        <Zap size={14} /> {uploading ? "Publication..." : "Publier · +10 CP"}
+                        <Zap size={14} /> {uploading ? "Publication..." : (Number(nBudget) > 0 ? `Publier · doter ${nBudget} CP` : "Publier")}
                       </button>
                       <button onClick={() => setShowForm(false)} style={{ background: "transparent", border: `1px solid ${G.border}`, color: G.muted, padding: "10px 16px", borderRadius: 8, fontSize: 13, cursor: "pointer", fontFamily: G.sans }}>Annuler</button>
                     </div>
@@ -1390,6 +1454,25 @@ export default function Dashboard() {
 
                       {/* CONTENU DROITE */}
                       <div style={{ flex: 1, padding: "20px 24px", display: "flex", flexDirection: "column", minWidth: 0 }}>
+
+                        {/* Budget de soutien (posts de l'utilisateur) */}
+                        {isOwn && (
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, background: "rgba(255,106,61,0.05)", border: `1px solid ${G.accentB}`, borderRadius: 8, padding: "6px 10px", marginBottom: 12 }}>
+                            <span style={{ fontSize: 11, color: G.muted }}>
+                              💛 Budget soutien : <strong style={{ color: G.gold }}>{post.support_budget || 0} CP</strong> restants
+                            </span>
+                            <button onClick={async () => {
+                              const v = parseInt(window.prompt('Combien de CP ajouter au budget de soutien de ce post ?', '50'), 10)
+                              if (!v || v <= 0) return
+                              const r = await fundPost(post.id, v)
+                              if (r.success) { setToast(`+${v} CP ajoutés au budget`); fetchProfile(user.id) }
+                              else { setToast('CP insuffisants') }
+                              setTimeout(() => setToast(null), 2200)
+                            }} style={{ background: G.accentL, border: `1px solid ${G.accentB}`, color: G.accent, padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: G.sans, flexShrink: 0 }}>
+                              Recharger
+                            </button>
+                          </div>
+                        )}
 
                         {/* En-tête auteur */}
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
@@ -1557,7 +1640,7 @@ export default function Dashboard() {
                                   fontSize: 10, fontWeight: 800, color: mColor,
                                   background: `${mColor}15`, border: `1px solid ${mColor}30`,
                                   borderRadius: 20, padding: "2px 8px",
-                                }}>+{m.cp} CP</span>
+                                }}>+{m.id === 'buy' ? m.cp : Math.min(m.cp, post.support_budget || 0)} CP</span>
                               )}
                             </button>
                           )
@@ -1681,7 +1764,7 @@ export default function Dashboard() {
                             <span style={{ flex: 1, textAlign: "left", fontSize: 13, fontWeight: 600, color: done ? G.mint : G.text }}>{m.label}</span>
                             {done
                               ? <span style={{ fontSize: 11, color: G.cyan, fontWeight: 700 }}>✓ Fait</span>
-                              : <span style={{ fontSize: 11, color: m.free ? G.cyan : G.gold, fontWeight: 700, background: m.free ? G.cyanL : G.goldL, border: `1px solid ${m.free ? G.cyanB : G.goldB}`, borderRadius: 5, padding: "2px 8px" }}>+{m.cp} CP</span>
+                              : <span style={{ fontSize: 11, color: m.free ? G.cyan : G.gold, fontWeight: 700, background: m.free ? G.cyanL : G.goldL, border: `1px solid ${m.free ? G.cyanB : G.goldB}`, borderRadius: 5, padding: "2px 8px" }}>+{m.id === 'buy' ? m.cp : Math.min(m.cp, post.support_budget || 0)} CP</span>
                             }
                           </button>
                         )
@@ -1767,6 +1850,11 @@ export default function Dashboard() {
                     <span style={{ fontSize: 16, color: G.muted, fontWeight: 600 }}>CP</span>
                   </div>
                   <div style={{ fontSize: 12, color: G.faint, marginTop: 2 }}>Rang : {rank} · Ligue : {league}</div>
+                  {(profile?.discount_credit_cents || 0) > 0 && (
+                    <div style={{ fontSize: 12, color: G.cyan, marginTop: 5, fontWeight: 700 }}>
+                      💳 Crédit abonnement : {((profile.discount_credit_cents || 0) / 100).toFixed(2)}€
+                    </div>
+                  )}
                 </div>
                 <div style={{ textAlign: "right" }}>
                   <div style={{ fontSize: 12, color: G.muted, marginBottom: 8 }}>Gagner plus de CP</div>
