@@ -211,17 +211,10 @@ export function usePosts() {
   const boostPost = async (postId) => {
     if (!user) return { success: false }
     try {
-      const { data: success } = await supabase.rpc('spend_points', {
-        p_user_id: user.id, p_points: 100, p_reason: 'Boost post 24h',
-      })
-      if (success) {
-        await supabase.from('posts').update({
-          is_boosted: true,
-          boosted_until: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        }).eq('id', postId)
-        await fetchPosts()
-      }
-      return { success }
+      // Boost via RPC sécurisée (débit serveur + pose is_boosted, gratuit si Pass actif)
+      const { data } = await supabase.rpc('buy_boost', { p_post_id: postId, p_hours: 24 })
+      if (data === 'ok') { await fetchPosts(); return { success: true } }
+      return { success: false, status: data }
     } catch (err) {
       return { success: false, error: err }
     }

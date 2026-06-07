@@ -215,6 +215,24 @@ const CP_SHOP = [
     color: G.gold, badge: "Lancement · 200 ex.",
     category: "statut",
   },
+  {
+    id: "coffre_premium",
+    ShopIcon: Gift,
+    title: "Coffre surprise premium",
+    desc: "Tente ta chance : entre 10 et 500 CP au hasard. Petit prix, gros frissons.",
+    cost: 30,
+    color: G.cyan, badge: "Fun",
+    category: "missions",
+  },
+  {
+    id: "boost_pass",
+    ShopIcon: Rocket,
+    title: "Pass Boost illimité 30j",
+    desc: "Boost tes posts autant que tu veux pendant 30 jours (hors tête de feed). Valeur ×5 vs achats à l'unité.",
+    cost: 800,
+    color: G.accent, badge: "Pass",
+    category: "visibilité",
+  },
 ]
 
 const DAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
@@ -593,7 +611,9 @@ export default function Dashboard() {
       setTimeout(() => setToast(null), 2200)
       return
     }
-    if ((profile.cp || 0) < item.cost) {
+    const passActive = profile.boost_pass_until && new Date(profile.boost_pass_until) > new Date()
+    const skipCostCheck = passActive && (item.id === 'boost_24h' || item.id === 'featured_48h')
+    if (!skipCostCheck && (profile.cp || 0) < item.cost) {
       setCpAnim({ amount: -item.cost, label: "CP insuffisants !" })
       setTimeout(() => setCpAnim(null), 2000)
       return
@@ -641,34 +661,35 @@ export default function Dashboard() {
         setToast("👑 Ton post est en TÊTE DE FEED pour 24h !")
         setTimeout(() => setToast(null), 2800)
         await fetchPosts(); setTab('feed')
+      } else if (item.id === 'boost_24h' || item.id === 'featured_48h') {
+        if (!postId) { setToast("Choisis un post à booster"); setTimeout(() => setToast(null), 2200); return }
+        const hours = item.id === 'featured_48h' ? 48 : 24
+        const { data, error } = await supabase.rpc('buy_boost', { p_post_id: postId, p_hours: hours })
+        if (error) { console.error('buy_boost error:', error); setToast("Le boost a échoué (réessaie)"); setTimeout(() => setToast(null), 2500); return }
+        if (data === 'not_owner') { setToast("Tu ne peux booster que tes propres posts"); setTimeout(() => setToast(null), 2400); return }
+        if (data !== 'ok') { setToast("CP insuffisants"); setTimeout(() => setToast(null), 2200); return }
+        setToast("🚀 Post mis en avant ! Il remonte dans le feed.")
+        setTimeout(() => setToast(null), 2600)
+        await fetchPosts(); setTab('feed')
+      } else if (item.id === 'coffre_premium') {
+        const { data, error } = await supabase.rpc('open_premium_chest')
+        if (error) { console.error('coffre error:', error); setToast("Erreur"); setTimeout(() => setToast(null), 2200); return }
+        if (data === null || data < 0) { setToast("CP insuffisants (30 CP)"); setTimeout(() => setToast(null), 2200); return }
+        setCpAnim({ amount: data, label: "Coffre surprise !" })
+        setTimeout(() => setCpAnim(null), 2200)
+      } else if (item.id === 'boost_pass') {
+        const { data, error } = await supabase.rpc('buy_boost_pass')
+        if (error) { console.error('boost_pass error:', error); setToast("Erreur"); setTimeout(() => setToast(null), 2200); return }
+        if (!data) { setToast("CP insuffisants (800 CP)"); setTimeout(() => setToast(null), 2200); return }
+        setToast("Pass Boost illimité activé pour 30 jours !")
+        setTimeout(() => setToast(null), 2800)
       } else {
-        // Dépense sécurisée : le serveur ne débite que l'appelant
+        // Fallback : dépense générique sécurisée
         const { data: spent, error: spendErr } = await supabase.rpc('spend_points', {
           p_user_id: user.id, p_points: item.cost, p_reason: item.title,
         })
-        if (spendErr) {
-          console.error('spend_points error:', spendErr)
-          setToast("Erreur lors du paiement en CP")
-          setTimeout(() => setToast(null), 2500)
-          return
-        }
-        if (!spent) {
-          setToast('CP insuffisants')
-          setTimeout(() => setToast(null), 2000)
-          return
-        }
-
-        // Actions spécifiques selon l'item
-        if ((item.id === 'boost_24h' || item.id === 'featured_48h') && postId) {
-          const hours = item.id === 'featured_48h' ? 48 : 24
-          const { error: boostErr } = await supabase.from('posts')
-            .update({ is_boosted: true, boosted_until: new Date(Date.now() + hours*60*60*1000).toISOString() })
-            .eq('id', postId)
-          if (boostErr) { console.error('boost error:', boostErr); setToast("Le boost a échoué (réessaie)"); setTimeout(() => setToast(null), 2500) }
-          else { setToast("🚀 Post mis à la une ! Il est en tête du feed."); setTimeout(() => setToast(null), 2600) }
-          await fetchPosts()
-          setTab('feed')
-        }
+        if (spendErr) { console.error('spend_points error:', spendErr); setToast("Erreur lors du paiement en CP"); setTimeout(() => setToast(null), 2500); return }
+        if (!spent) { setToast('CP insuffisants'); setTimeout(() => setToast(null), 2000); return }
       }
 
       // Notifier l'utilisateur
@@ -2049,7 +2070,7 @@ export default function Dashboard() {
 
               {/* Filtres catégories */}
               <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
-                {['tous', 'visibilité', 'insights', 'statut', 'réseau', 'économies'].map(cat => (
+                {['tous', 'visibilité', 'statut', 'missions', 'insights', 'réseau', 'économies'].map(cat => (
                   <button key={cat} onClick={() => setShopCategory(cat)} style={{ background: shopCategory === cat ? G.accent : G.card, border: `1px solid ${shopCategory === cat ? G.accent : G.border}`, color: shopCategory === cat ? "#fff" : G.muted, padding: "6px 14px", borderRadius: 20, fontSize: 12, cursor: "pointer", fontFamily: G.sans, fontWeight: shopCategory === cat ? 700 : 400, transition: "all 0.15s ease", textTransform: "capitalize" }}>
                     {cat === 'tous' ? '✦ Tout' : cat}
                   </button>
