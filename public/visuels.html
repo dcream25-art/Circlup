@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CirclUp — Système visuel (proposition codée)</title>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,900&family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:#050505; --card:rgba(255,255,255,0.03); --card2:rgba(255,255,255,0.05);
+    --border:rgba(255,255,255,0.06); --text:#fff; --muted:#9A9A9A;
+    --accent:#FF6A3D; --accent2:#e04f25; --cyan:#00D5D5; --gold:#F5C842;
+    --serif:'Playfair Display',serif; --sans:'DM Sans',sans-serif; --num:'Space Grotesk',sans-serif;
+  }
+  body { background:var(--bg); color:var(--text); font-family:var(--sans); padding:54px 5% 90px; }
+  h1 { font-family:var(--serif); font-size:clamp(28px,4vw,40px); font-weight:900; letter-spacing:-1px; }
+  .sub { color:var(--muted); font-size:15px; margin:10px 0 8px; max-width:640px; line-height:1.6; }
+  .legend { color:var(--muted); font-size:13px; margin-bottom:46px; }
+  .legend b { color:var(--accent); }
+  h2 { font-family:var(--serif); font-size:24px; font-weight:700; margin:54px 0 6px; }
+  .h2sub { color:var(--muted); font-size:14px; margin-bottom:26px; }
+
+  /* ── Le "plateau" commun (la clé de cohérence) ── */
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px; }
+  .stage {
+    background:var(--card); border:1px solid var(--border); border-radius:20px; overflow:hidden;
+    transition:transform .25s cubic-bezier(.16,1,.3,1), border-color .2s, box-shadow .25s;
+  }
+  .stage:hover { transform:translateY(-4px); border-color:rgba(255,255,255,.12); box-shadow:0 24px 60px rgba(0,0,0,.45); }
+  .scene { height:210px; position:relative; display:flex; align-items:center; justify-content:center; overflow:hidden;
+           background:radial-gradient(120% 90% at 50% 0%, rgba(255,255,255,0.035), transparent 60%); }
+  .scene .halo { position:absolute; width:240px; height:240px; border-radius:50%; filter:blur(8px); opacity:.5; pointer-events:none; }
+  .body { padding:22px 24px 26px; }
+  .accent-line { width:34px; height:3px; border-radius:3px; margin-bottom:14px; }
+  .title { font-family:var(--serif); font-size:19px; font-weight:700; margin-bottom:8px; }
+  .desc { font-size:13.5px; color:var(--muted); line-height:1.6; }
+
+  /* overlay icône centrée sur une forme SVG */
+  .ov { position:relative; display:inline-flex; align-items:center; justify-content:center; }
+  .ov > i { position:absolute; }
+
+  /* ── Badges de rang ── */
+  .badges { display:flex; flex-wrap:wrap; gap:30px; align-items:flex-end; }
+  .badge { text-align:center; }
+  .badge .b-name { font-family:var(--num); font-size:13px; font-weight:600; margin-top:14px; letter-spacing:.3px; }
+  .badge .b-sub { font-size:11px; color:var(--muted); margin-top:3px; }
+
+  .pill { display:inline-flex; align-items:center; gap:7px; background:rgba(245,200,66,.08); border:1px solid rgba(245,200,66,.25);
+          color:var(--gold); font-size:11px; font-weight:700; letter-spacing:1px; border-radius:30px; padding:6px 13px; }
+
+  .note { background:var(--card); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:14px;
+          padding:20px 22px; margin-top:30px; max-width:760px; }
+  .note b { color:var(--text); }
+  .note p { color:var(--muted); font-size:13.5px; line-height:1.7; }
+</style>
+</head>
+<body>
+  <h1>CirclUp — Système visuel <span style="font-style:italic;color:var(--accent)">codé</span></h1>
+  <p class="sub">Tout ci-dessous est du <b style="color:#fff">SVG/CSS pur</b> aux couleurs de ta charte (orange · cyan · or) — recolorable, animable, léger, net à toute taille. Aucun PNG, aucune image 3D.</p>
+  <p class="legend">Note le <b>« plateau »</b> identique sur chaque carte (fond sombre + halo + trait de couleur) : c'est lui qui crée la cohérence, plus que l'illustration elle-même.</p>
+
+  <!-- ════════ BADGES ════════ -->
+  <h2>1 · Badges &amp; rangs <span style="font-size:13px;color:var(--muted);font-style:italic">(là où on investit le plus — c'est ton identité gamifiée)</span></h2>
+  <p class="h2sub">Une même forme (hexagone), déclinée par tier via dégradé + anneau + icône. Le Fondateur a un traitement « médaille » à part.</p>
+  <div class="badges">
+    <!-- Rang : Recrue -->
+    <div class="badge">
+      <div class="ov" style="width:104px;height:116px">
+        <svg width="104" height="116" viewBox="0 0 120 134">
+          <defs>
+            <linearGradient id="gRecrue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2be0e0"/><stop offset="1" stop-color="#0a8f8f"/></linearGradient>
+            <filter id="sh" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#00D5D5" flood-opacity="0.35"/></filter>
+          </defs>
+          <path d="M60 4 L110 31 L110 87 L60 130 L10 87 L10 31 Z" fill="url(#gRecrue)" stroke="rgba(255,255,255,.3)" stroke-width="2" filter="url(#sh)"/>
+          <path d="M60 16 L99 37 L99 82 L60 117 L21 82 L21 37 Z" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1.5"/>
+        </svg>
+        <i data-lucide="sprout" style="color:#063" width="34" height="34"></i>
+      </div>
+      <div class="b-name" style="color:var(--cyan)">Recrue</div>
+      <div class="b-sub">niveau 1</div>
+    </div>
+
+    <!-- Rang : Bâtisseur -->
+    <div class="badge">
+      <div class="ov" style="width:120px;height:134px">
+        <svg width="120" height="134" viewBox="0 0 120 134">
+          <defs>
+            <linearGradient id="gBat" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8a5c"/><stop offset="1" stop-color="#d8401a"/></linearGradient>
+            <filter id="sh2" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="7" stdDeviation="10" flood-color="#FF6A3D" flood-opacity="0.45"/></filter>
+          </defs>
+          <path d="M60 4 L110 31 L110 87 L60 130 L10 87 L10 31 Z" fill="url(#gBat)" stroke="rgba(255,255,255,.35)" stroke-width="2" filter="url(#sh2)"/>
+          <path d="M60 16 L99 37 L99 82 L60 117 L21 82 L21 37 Z" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5"/>
+        </svg>
+        <i data-lucide="hammer" style="color:#fff" width="40" height="40"></i>
+      </div>
+      <div class="b-name" style="color:var(--accent)">Bâtisseur</div>
+      <div class="b-sub">niveau 2</div>
+    </div>
+
+    <!-- Rang : Légende -->
+    <div class="badge">
+      <div class="ov" style="width:104px;height:116px">
+        <svg width="104" height="116" viewBox="0 0 120 134">
+          <defs>
+            <linearGradient id="gLeg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe07a"/><stop offset="1" stop-color="#e0a91a"/></linearGradient>
+            <filter id="sh3" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#F5C842" flood-opacity="0.4"/></filter>
+          </defs>
+          <path d="M60 4 L110 31 L110 87 L60 130 L10 87 L10 31 Z" fill="url(#gLeg)" stroke="rgba(255,255,255,.35)" stroke-width="2" filter="url(#sh3)"/>
+          <path d="M60 16 L99 37 L99 82 L60 117 L21 82 L21 37 Z" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5"/>
+        </svg>
+        <i data-lucide="star" style="color:#7a5500;fill:#7a5500" width="34" height="34"></i>
+      </div>
+      <div class="b-name" style="color:var(--gold)">Légende</div>
+      <div class="b-sub">niveau max</div>
+    </div>
+
+    <!-- Fondateur (médaille) -->
+    <div class="badge" style="margin-left:8px">
+      <div class="ov" style="width:128px;height:128px">
+        <svg width="128" height="128" viewBox="0 0 140 140">
+          <defs>
+            <radialGradient id="gFond" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#fff3c4"/><stop offset="45%" stop-color="#F5C842"/><stop offset="100%" stop-color="#b8860b"/></radialGradient>
+            <filter id="shF" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="0" stdDeviation="11" flood-color="#F5C842" flood-opacity="0.55"/></filter>
+          </defs>
+          <circle cx="70" cy="70" r="60" fill="none" stroke="rgba(245,200,66,.35)" stroke-width="2" stroke-dasharray="3 6"/>
+          <circle cx="70" cy="70" r="50" fill="url(#gFond)" stroke="rgba(255,255,255,.45)" stroke-width="2.5" filter="url(#shF)"/>
+          <circle cx="70" cy="70" r="40" fill="none" stroke="rgba(120,80,0,.35)" stroke-width="1.5"/>
+        </svg>
+        <i data-lucide="crown" style="color:#5e3d00" width="46" height="46"></i>
+      </div>
+      <div class="b-name" style="color:var(--gold)">Fondateur</div>
+      <div class="b-sub">édition limitée · 200 ex.</div>
+    </div>
+  </div>
+
+  <!-- ════════ ILLUSTRATIONS ════════ -->
+  <h2>2 · Illustrations de scène <span style="font-size:13px;color:var(--muted);font-style:italic">(codées — fiables et animables)</span></h2>
+  <p class="h2sub">Reproductibles proprement en SVG : streak, diagramme de trafic, avis. (Les scènes très « 3D objet » comme étoiles-sur-podium ou puzzle métallique → route image, voir note en bas.)</p>
+  <div class="grid">
+
+    <!-- Streak / flamme -->
+    <div class="stage">
+      <div class="scene">
+        <div class="halo" style="background:radial-gradient(circle,rgba(255,106,61,.3),transparent 65%)"></div>
+        <div class="ov" style="width:150px;height:150px">
+          <svg width="150" height="150" viewBox="0 0 200 200">
+            <defs>
+              <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F5C842"/><stop offset="1" stop-color="#FF4D1C"/></linearGradient>
+            </defs>
+            <circle cx="100" cy="100" r="80" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="14"/>
+            <circle cx="100" cy="100" r="80" fill="none" stroke="url(#ring)" stroke-width="14" stroke-linecap="round"
+                    stroke-dasharray="362 503" transform="rotate(-90 100 100)"/>
+          </svg>
+          <i data-lucide="flame" style="color:var(--accent)" width="56" height="56"></i>
+        </div>
+        <div style="position:absolute;right:30px;bottom:34px;background:#0d0d0d;border:1px solid var(--border);border-radius:12px;padding:8px 12px;text-align:center">
+          <div style="font-family:var(--num);font-size:20px;font-weight:700;color:var(--accent);line-height:1">12</div>
+          <div style="font-size:9px;color:var(--muted)">jours</div>
+        </div>
+      </div>
+      <div class="body">
+        <div class="accent-line" style="background:var(--accent)"></div>
+        <div class="title">Progresse chaque jour</div>
+        <div class="desc">Ton streak monte, ton multiplicateur aussi. La régularité est récompensée.</div>
+      </div>
+    </div>
+
+    <!-- Trafic / réseau -->
+    <div class="stage">
+      <div class="scene">
+        <div class="halo" style="background:radial-gradient(circle,rgba(255,106,61,.22),transparent 65%)"></div>
+        <svg width="100%" height="100%" viewBox="0 0 300 210" preserveAspectRatio="xMidYMid meet" style="position:absolute;inset:0">
+          <g stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="2 6" stroke-linecap="round" opacity="0.7" fill="none">
+            <line x1="150" y1="105" x2="70" y2="55"/><line x1="150" y1="105" x2="230" y2="55"/>
+            <line x1="150" y1="105" x2="70" y2="155"/><line x1="150" y1="105" x2="230" y2="155"/>
+          </g>
+        </svg>
+        <!-- noeud central -->
+        <div class="ov" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:18px;background:linear-gradient(145deg,#1a1a1a,#0c0c0c);border:1px solid var(--accent);box-shadow:0 0 30px rgba(255,106,61,.3)">
+          <i data-lucide="shopping-bag" style="color:var(--accent)" width="28" height="28"></i>
+        </div>
+        <!-- satellites -->
+        <div class="node" style="left:calc(50% - 80px);top:55px">P</div>
+        <div class="node" style="left:calc(50% + 56px);top:55px;background:#1a1a1a;color:#fff;border-color:rgba(255,255,255,.2)">G</div>
+        <div class="node" style="left:calc(50% - 80px);top:155px;background:linear-gradient(45deg,#f09433,#dc2743,#bc1888);color:#fff;border:none">◎</div>
+        <div class="node" style="left:calc(50% + 56px);top:155px;background:#F45800;color:#fff;border:none">E</div>
+      </div>
+      <div class="body">
+        <div class="accent-line" style="background:var(--accent)"></div>
+        <div class="title">Multiplie ton trafic externe</div>
+        <div class="desc">Partages, épingles, mentions : du vrai trafic vers ta boutique, vu par les algos.</div>
+      </div>
+    </div>
+
+    <!-- Avis -->
+    <div class="stage">
+      <div class="scene">
+        <div class="halo" style="background:radial-gradient(circle,rgba(0,213,213,.22),transparent 65%)"></div>
+        <div style="position:relative;width:200px;height:130px">
+          <div style="position:absolute;left:0;top:8px;width:150px;background:#0e1717;border:1px solid rgba(0,213,213,.3);border-radius:14px 14px 14px 4px;padding:14px 14px 16px">
+            <div style="height:7px;width:80%;background:rgba(255,255,255,.12);border-radius:4px;margin-bottom:7px"></div>
+            <div style="height:7px;width:60%;background:rgba(255,255,255,.1);border-radius:4px"></div>
+          </div>
+          <div style="position:absolute;right:0;bottom:6px;background:#101010;border:1px solid var(--border);border-radius:14px 14px 4px 14px;padding:11px 13px;display:flex;gap:3px;box-shadow:0 10px 30px rgba(0,0,0,.5)">
+            <i data-lucide="star" style="color:var(--gold);fill:var(--gold)" width="15" height="15"></i>
+            <i data-lucide="star" style="color:var(--gold);fill:var(--gold)" width="15" height="15"></i>
+            <i data-lucide="star" style="color:var(--gold);fill:var(--gold)" width="15" height="15"></i>
+            <i data-lucide="star" style="color:var(--gold);fill:var(--gold)" width="15" height="15"></i>
+            <i data-lucide="star" style="color:var(--gold);fill:var(--gold)" width="15" height="15"></i>
+          </div>
+          <div style="position:absolute;right:-6px;top:-6px;width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 33% 33%,#00D5D5,#066);display:flex;align-items:center;justify-content:center">
+            <i data-lucide="user" style="color:#fff" width="16" height="16"></i>
+          </div>
+        </div>
+      </div>
+      <div class="body">
+        <div class="accent-line" style="background:var(--cyan)"></div>
+        <div class="title">Reçois des avis &amp; commentaires</div>
+        <div class="desc">Des avis vérifiés et des commentaires pertinents. Ta crédibilité monte, tes ventes suivent.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="note">
+    <p><b>La bonne méthode, en résumé :</b><br>
+    • <b>Badges, rangs, anneaux, diagrammes, accents</b> → codés en SVG (ci-dessus). Recolorables, animables, légers.<br>
+    • <b>Scènes 3D photoréalistes</b> (étoiles-podium, puzzle métallique de tes captures) → un <b>set d'images généré</b> (IA/Spline/illustrateur) avec un style verrouillé + ta palette, posé sur le MÊME plateau que ci-dessus → ça reste « une famille ». Je te fournis le brief + les prompts, et j'intègre.<br>
+    • Une famille d'icônes UI (lucide) pour le fonctionnel · 2-3 couleurs max · couleur = sens (orange=action, cyan=social, or=récompense).</p>
+  </div>
+
+  <style>
+    .node { position:absolute; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+            font-family:var(--num); font-weight:700; font-size:15px; transform:translate(-50%,-50%);
+            background:#CB1F27; color:#fff; border:1px solid rgba(255,255,255,.15); box-shadow:0 6px 18px rgba(0,0,0,.5); }
+  </style>
+  <script>lucide.createIcons();</script>
+</body>
+</html>
